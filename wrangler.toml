@@ -1,0 +1,18 @@
+# Cloudflare Pages configuration.
+#
+# compatibility_flags:
+#   - nodejs_compat            enables Node.js built-ins (Buffer, node:http, etc.)
+#                              that Express and our other dependencies need.
+#   - allow_eval_during_startup  lets lib/render.js precompile all EJS templates
+#                              once when the Worker starts. Required because
+#                              Workers forbid eval()/new Function() while
+#                              handling a request, but explicitly allow it
+#                              during startup — which is exactly when we do it.
+#
+# If you're configuring this from the Cloudflare dashboard instead of the CLI,
+# set these same two flags under your Pages project's
+# Settings -> Functions -> Compatibility flags (for both Production and Preview).
+name = "norden-trading-website"
+compatibility_date = "2026-07-22"
+compatibility_flags = ["nodejs_compat", "allow_eval_during_startup"]
+pages_build_output_dir = "public"

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — <%= service.title_en %></title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="checkout-wrap">
+  <a href="/" class="nav-link" style="color:var(--steel); font-size:12px;">&larr; Back to site</a>
+  <div class="checkout-box" style="margin-top:16px;">
+    <h1><%= service.title_en %></h1>
+    <div class="svc-price"><%= service.price.toLocaleString('en-US') %> <%= service.currency %></div>
+    <p class="lead" style="margin-bottom:20px; font-size:14px;"><%= service.desc_en %></p>
+
+    <% if (error) { %><div class="error"><%= error %></div><% } %>
+
+    <form method="POST" action="/checkout/<%= service.id %>">
+      <div class="field" style="margin-bottom:14px;">
+        <label>Full Name</label>
+        <input type="text" name="name" required>
+      </div>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Email</label>
+        <input type="text" name="email" required>
+      </div>
+      <div class="field" style="margin-bottom:20px;">
+        <label>Phone</label>
+        <input type="text" name="phone" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Pay with Chapa</button>
+    </form>
+    <p class="form-note">You'll be redirected to Chapa's secure checkout to complete payment.</p>
+  </div>
+</div>
+</body>
+</html>

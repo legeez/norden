@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Site Content — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'content' }) %>
+  <div class="admin-main">
+    <h1>Site Content</h1>
+    <p class="admin-sub">Edit the text that appears on your homepage, in English and Amharic.</p>
+    <% if (saved) { %><div class="notice">Changes saved.</div><% } %>
+
+    <form method="POST" action="/admin/content" enctype="multipart/form-data">
+
+      <div class="card">
+        <h2>Hero Section</h2>
+        <label>Eyebrow (English)</label><input type="text" name="hero_eyebrow_en" value="<%= content.hero_eyebrow.en %>">
+        <label>Eyebrow (Amharic)</label><input type="text" name="hero_eyebrow_am" value="<%= content.hero_eyebrow.am %>">
+        <div class="lang-col">
+          <div><label>Headline (English)</label><textarea name="hero_title_en"><%= content.hero_title.en %></textarea></div>
+          <div><label>Headline (Amharic)</label><textarea name="hero_title_am"><%= content.hero_title.am %></textarea></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Subtitle (English)</label><textarea name="hero_subtitle_en"><%= content.hero_subtitle.en %></textarea></div>
+          <div><label>Subtitle (Amharic)</label><textarea name="hero_subtitle_am"><%= content.hero_subtitle.am %></textarea></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Company Profile / About</h2>
+        <div class="lang-col">
+          <div><label>Title (English)</label><input type="text" name="about_title_en" value="<%= content.about_title.en %>"></div>
+          <div><label>Title (Amharic)</label><input type="text" name="about_title_am" value="<%= content.about_title.am %>"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Body (English)</label><textarea name="about_body_en"><%= content.about_body.en %></textarea></div>
+          <div><label>Body (Amharic)</label><textarea name="about_body_am"><%= content.about_body.am %></textarea></div>
+        </div>
+        <label>About Photo</label>
+        <% if (content.about_image.en) { %><img src="<%= content.about_image.en %>" class="thumb" style="width:90px;height:90px;margin-bottom:10px;"><% } %>
+        <input type="file" name="about_image_file" accept="image/*">
+        <p class="hint">Upload a photo of your team, office, or a project site.</p>
+      </div>
+
+      <div class="card">
+        <h2>Contact Info</h2>
+        <div class="lang-col">
+          <div><label>Office Address (English)</label><input type="text" name="contact_office_en" value="<%= content.contact_office.en %>"></div>
+          <div><label>Office Address (Amharic)</label><input type="text" name="contact_office_am" value="<%= content.contact_office.am %>"></div>
+        </div>
+        <div class="row2">
+          <div><label>Phone</label><input type="text" name="contact_phone_en" value="<%= content.contact_phone.en %>"></div>
+          <div><label>Email</label><input type="text" name="contact_email_en" value="<%= content.contact_email.en %>"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Business Hours (English)</label><input type="text" name="contact_hours_en" value="<%= content.contact_hours.en %>"></div>
+          <div><label>Business Hours (Amharic)</label><input type="text" name="contact_hours_am" value="<%= content.contact_hours.am %>"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Footer</h2>
+        <div class="lang-col">
+          <div><label>Tagline (English)</label><textarea name="footer_tagline_en"><%= content.footer_tagline.en %></textarea></div>
+          <div><label>Tagline (Amharic)</label><textarea name="footer_tagline_am"><%= content.footer_tagline.am %></textarea></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Company Name (English)</label><input type="text" name="company_name_en" value="<%= content.company_name.en %>"></div>
+          <div><label>Company Name (Amharic)</label><input type="text" name="company_name_am" value="<%= content.company_name.am %>"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </div>
+</div>
+</body>
+</html>

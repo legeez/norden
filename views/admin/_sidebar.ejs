@@ -1,0 +1,11 @@
+<div class="admin-sidebar">
+  <div class="brand">NORDEN ADMIN</div>
+  <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+  <a href="/admin/content" class="<%= active === 'content' ? 'active' : '' %>">Site Content</a>
+  <a href="/admin/services" class="<%= active === 'services' ? 'active' : '' %>">Services & Prices</a>
+  <a href="/admin/blocks/about_features" class="<%= active === 'blocks' ? 'active' : '' %>">Page Sections</a>
+  <a href="/admin/gallery" class="<%= active === 'gallery' ? 'active' : '' %>">Project Gallery</a>
+  <a href="/admin/orders" class="<%= active === 'orders' ? 'active' : '' %>">Orders</a>
+  <a href="/" target="_blank">View Site &#8599;</a>
+  <form method="POST" action="/admin/logout"><button type="submit">Log Out</button></form>
+</div>

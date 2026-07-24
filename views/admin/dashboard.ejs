@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'dashboard' }) %>
+  <div class="admin-main">
+    <h1>Dashboard</h1>
+    <p class="admin-sub">A quick look at your site and orders.</p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="num"><%= serviceCount %></div><div class="lbl">Active Services</div></div>
+      <div class="stat"><div class="num"><%= orderCount %></div><div class="lbl">Total Orders</div></div>
+      <div class="stat"><div class="num"><%= paidCount %></div><div class="lbl">Paid Orders</div></div>
+      <div class="stat"><div class="num">ETB <%= revenue.toLocaleString('en-US') %></div><div class="lbl">Revenue Collected</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Recent Orders</h2>
+      <% if (recentOrders.length === 0) { %>
+        <p class="hint">No orders yet. Orders will appear here once a customer pays for a service.</p>
+      <% } else { %>
+      <table>
+        <tr><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th></tr>
+        <% recentOrders.forEach(function(o){ %>
+        <tr>
+          <td><%= o.customer_name %></td>
+          <td><%= o.service_title %></td>
+          <td><%= o.amount.toLocaleString('en-US') %> <%= o.currency %></td>
+          <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
+        </tr>
+        <% }) %>
+      </table>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2>Payments Setup</h2>
+      <p class="hint" style="margin-top:0;">Checkout uses your Chapa secret key from the server's <code>.env</code> file — it is never shown or editable here for security. See the README for how to add it.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

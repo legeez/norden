@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'orders' }) %>
+  <div class="admin-main">
+    <h1>Orders</h1>
+    <p class="admin-sub">Every checkout attempt, and whether Chapa confirmed the payment.</p>
+
+    <div class="card">
+      <% if (orders.length === 0) { %>
+        <p class="hint" style="margin-top:0;">No orders yet.</p>
+      <% } else { %>
+      <table>
+        <tr><th>Date</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Reference</th></tr>
+        <% orders.forEach(function(o){ %>
+        <tr>
+          <td><%= new Date(o.created_at).toLocaleString() %></td>
+          <td><%= o.customer_name %><br><span class="hint" style="margin:0;"><%= o.customer_email %> · <%= o.customer_phone %></span></td>
+          <td><%= o.service_title %></td>
+          <td><%= o.amount.toLocaleString('en-US') %> <%= o.currency %></td>
+          <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
+          <td style="font-family:var(--font-mono); font-size:11px;"><%= o.tx_ref %></td>
+        </tr>
+        <% }) %>
+      </table>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

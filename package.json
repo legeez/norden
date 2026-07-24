@@ -1,0 +1,26 @@
+{
+  "name": "norden-trading-website",
+  "version": "1.0.0",
+  "description": "Norden Trading Plc website with editable admin backend and Chapa checkout",
+  "main": "server.js",
+  "scripts": {
+    "start": "npm run build:templates && node server.js",
+    "dev": "npm run build:templates && node server.js",
+    "build:templates": "node scripts/build-templates.js",
+    "cf:dev": "npm run build:templates && wrangler pages dev public",
+    "cf:deploy": "npm run build:templates && wrangler pages deploy public"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.5",
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "multer": "^2.2.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0"
+  }
+}

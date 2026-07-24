@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Gallery — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'gallery' }) %>
+  <div class="admin-main">
+    <h1>Project Gallery</h1>
+    <p class="admin-sub">Photos shown in the "Recent Projects" section of your homepage.</p>
+
+    <div class="card">
+      <h2>Add a Photo</h2>
+      <form method="POST" action="/admin/gallery" enctype="multipart/form-data">
+        <label>Photo</label>
+        <input type="file" name="image_file" accept="image/*" required>
+        <div class="lang-col">
+          <div><label>Caption (English)</label><input type="text" name="caption_en" placeholder="Project name + location"></div>
+          <div><label>Caption (Amharic)</label><input type="text" name="caption_am"></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Current Photos</h2>
+      <% if (items.length === 0) { %><p class="hint" style="margin-top:0;">No photos yet.</p><% } %>
+      <table>
+        <% items.forEach(function(g){ %>
+        <tr>
+          <td><img src="<%= g.image %>" class="thumb"></td>
+          <td><%= g.caption_en %></td>
+          <td>
+            <form method="POST" action="/admin/gallery/<%= g.id %>/delete" onsubmit="return confirm('Delete this photo?');">
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Sections — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'blocks' }) %>
+  <div class="admin-main">
+    <h1>Page Sections</h1>
+    <p class="admin-sub">Edit the repeating cards on your homepage: company highlights, why-us points, and the process steps.</p>
+
+    <div class="tabs">
+      <a href="/admin/blocks/about_features" class="<%= section === 'about_features' ? 'active' : '' %>">Company Profile List</a>
+      <a href="/admin/blocks/why_us" class="<%= section === 'why_us' ? 'active' : '' %>">Why Us Cards</a>
+      <a href="/admin/blocks/process" class="<%= section === 'process' ? 'active' : '' %>">Process Steps</a>
+    </div>
+
+    <% items.forEach(function(it){ %>
+    <div class="section-block">
+      <form method="POST" action="/admin/blocks/<%= section %>/<%= it.id %>/update">
+        <div class="meta"><span class="order">Order</span></div>
+        <input type="number" name="order" value="<%= it.order %>" style="max-width:100px;">
+        <div class="lang-col">
+          <div><label>Title (English)</label><input type="text" name="title_en" value="<%= it.title_en %>"></div>
+          <div><label>Title (Amharic)</label><input type="text" name="title_am" value="<%= it.title_am %>"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Text (English)</label><textarea name="body_en"><%= it.body_en %></textarea></div>
+          <div><label>Text (Amharic)</label><textarea name="body_am"><%= it.body_am %></textarea></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </form>
+      <form method="POST" action="/admin/blocks/<%= section %>/<%= it.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this item?');">
+        <button type="submit" class="btn btn-danger" style="margin-top:10px;">Delete</button>
+      </form>
+    </div>
+    <% }) %>
+
+    <div class="card">
+      <h2>Add New Item</h2>
+      <form method="POST" action="/admin/blocks/<%= section %>">
+        <div class="lang-col">
+          <div><label>Title (English)</label><input type="text" name="title_en" required></div>
+          <div><label>Title (Amharic)</label><input type="text" name="title_am"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Text (English)</label><textarea name="body_en"></textarea></div>
+          <div><label>Text (Amharic)</label><textarea name="body_am"></textarea></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>
