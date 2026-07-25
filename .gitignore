@@ -1,0 +1,4 @@
+node_modules/
+.env
+worker/templates.generated.js
+.wrangler/
