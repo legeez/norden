@@ -8,8 +8,20 @@
 // out to be too much CPU for Cloudflare's startup-time budget ("Worker
 // failed validation because it exceeded startup limits"). Compiling to real
 // JS *here*, on a normal machine with no such limit, means the Worker never
-// calls eval()/new Function() at all — startup is just ordinary function
-// declarations, and there's no per-template cost to add up.
+// calls eval()/new Function() at all.
+//
+// v3 fix: EJS's compiled output wraps the template body in `with (locals ||
+// {}) { ... }` so templates can reference `content`, `services`, etc. as
+// bare names. `with` is forbidden in strict-mode JS, and Wrangler's bundler
+// (esbuild) treats the whole Worker bundle as strict/ESM once our entry
+// point uses `import`/`export` — so a `with` statement anywhere in the
+// bundle, even inside an untouched third-party-style generated file, fails
+// the build. Rather than rewrite every `<%= x %>` in every template (risky —
+// several names like `active`/`error`/`order` also appear as object-literal
+// keys elsewhere, and a blind rename could corrupt those), this script
+// replaces just the `with (locals || {}) {` line with an equivalent plain
+// destructuring statement — same effect, no `with` keyword, and the
+// template body text itself is never touched.
 //
 // Run with: npm run build:templates
 const fs = require('fs');
@@ -18,6 +30,28 @@ const ejs = require('ejs');
 
 const VIEWS_DIR = path.join(__dirname, '..', 'views');
 const OUT_FILE = path.join(__dirname, '..', 'worker', 'templates.generated.js');
+
+// The exact top-level keys each template is rendered with — see the
+// render('name', { ... }) calls in routes/*.js and the include(...) calls in
+// views/**/*.ejs. Keeping this list explicit (rather than trying to infer it)
+// means the destructuring below can never accidentally miss or mis-scope a
+// name.
+const LOCALS_KEYS = {
+  'index': ['content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery'],
+  'admin/_sidebar': ['active'],
+  'admin/login': ['error'],
+  'admin/dashboard': ['serviceCount', 'orderCount', 'paidCount', 'revenue', 'recentOrders'],
+  'admin/content': ['content', 'saved'],
+  'admin/services': ['services'],
+  'admin/blocks': ['section', 'items'],
+  'admin/gallery': ['items'],
+  'admin/orders': ['orders'],
+  'checkout/form': ['service', 'error'],
+  'checkout/success': ['order'],
+  'checkout/failed': ['message', 'order']
+};
+
+const WITH_PATTERN = /with\s*\(\s*locals\s*\|\|\s*\{\}\s*\)\s*\{/;
 
 function walk(dir, base = '') {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -39,6 +73,21 @@ function toIdentifier(name) {
   return 'tpl_' + name.replace(/[^a-zA-Z0-9]/g, '_');
 }
 
+// Replaces `with (locals || {}) {` with `{ var {a, b, c} = locals || {};` —
+// same brace, same position, so the block's existing closing `}` still lines
+// up correctly. The template body after it is untouched.
+function stripWith(source, name) {
+  const keys = LOCALS_KEYS[name];
+  if (!keys) {
+    throw new Error(`build-templates: no LOCALS_KEYS entry for "${name}" — add one so its "with" block can be safely rewritten.`);
+  }
+  if (!WITH_PATTERN.test(source)) {
+    throw new Error(`build-templates: expected a "with (locals || {})" block in compiled output for "${name}" but didn't find one — EJS's output format may have changed.`);
+  }
+  const destructure = keys.length ? `var {${keys.join(', ')}} = locals || {};` : '';
+  return source.replace(WITH_PATTERN, `{ ${destructure}`);
+}
+
 function build() {
   const names = walk(VIEWS_DIR);
   const declarations = [];
@@ -48,16 +97,16 @@ function build() {
     const filePath = path.join(VIEWS_DIR, `${name}.ejs`);
     const source = fs.readFileSync(filePath, 'utf-8');
 
-    // client:true returns a function whose .toString() is real, standalone
-    // JS source — no eval needed to use it, just assign it to a name.
     const compiled = ejs.compile(source, {
       client: true,
       compileDebug: false,
       filename: filePath
     });
 
+    const withFreeSource = stripWith(compiled.toString(), name);
+
     const id = toIdentifier(name);
-    declarations.push(`const ${id} = ${compiled.toString()};`);
+    declarations.push(`const ${id} = ${withFreeSource};`);
     entries.push(`  ${JSON.stringify(name)}: ${id}`);
   });
 
@@ -66,8 +115,9 @@ function build() {
     '// Regenerate with: npm run build:templates',
     '//',
     '// Every template below was compiled to plain JS at build time (EJS',
-    '// "client" mode) — there is no eval() or new Function() left to run,',
-    '// which is what makes this safe to load at Worker startup.'
+    '// "client" mode, with the `with` block replaced by explicit',
+    '// destructuring) — there is no eval(), new Function(), or `with`',
+    '// statement left anywhere in this file.'
   ].join('\n');
 
   const body = `${banner}\n\n${declarations.join('\n\n')}\n\nmodule.exports = {\n${entries.join(',\n')}\n};\n`;
