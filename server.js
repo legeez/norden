@@ -3,6 +3,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const SupabaseSessionStore = require('./lib/sessionStore');
+const bodyParser = require('./lib/bodyParser');
 
 const publicRoutes = require('./routes/public');
 const adminRoutes = require('./routes/admin');
@@ -15,8 +16,8 @@ const app = express();
 // default fs-based view lookup, so the exact same code path runs locally and
 // on Cloudflare Pages, which has no filesystem to read .ejs files from.
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(bodyParser.urlencoded());
+  app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const SESSION_MAX_AGE = 1000 * 60 * 60 * 8; // 8 hours
