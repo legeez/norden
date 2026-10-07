@@ -14,10 +14,10 @@ const app = express();
 // No `app.set('view engine', ...)` here on purpose — every route renders
 // through lib/render.js (bundled, precompiled templates) instead of Express's
 // default fs-based view lookup, so the exact same code path runs locally and
-// on Cloudflare Pages, which has no filesystem to read .ejs files from.
+// on Cloudflare.
 
 app.use(bodyParser.urlencoded());
-  app.use(bodyParser.json());
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const SESSION_MAX_AGE = 1000 * 60 * 60 * 8; // 8 hours
@@ -49,8 +49,8 @@ app.use((err, req, res, next) => {
 });
 
 // Only start a listening server when run directly with Node (local dev, or any
-// traditional host). On Cloudflare, functions/[[path]].js imports `app`
-// itself and wraps it — Workers don't use app.listen() at all.
+// traditional host). On Cloudflare, worker/entry.js imports `app` itself and
+// wraps it — Workers don't use app.listen() at all.
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
