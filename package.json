@@ -4,6 +4,7 @@
   "description": "Norden Trading Plc website with editable admin backend and Chapa checkout",
   "main": "server.js",
   "scripts": {
+    "postinstall": "node scripts/patch-iconv-lite.js",
     "start": "npm run build:templates && node server.js",
     "dev": "npm run build:templates && node server.js",
     "build:templates": "node scripts/build-templates.js",
