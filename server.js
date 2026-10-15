@@ -18,7 +18,13 @@ const app = express();
 
 app.use(bodyParser.urlencoded());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+
+// Local development only. On Cloudflare there is no __dirname, and there's no
+// need for this anyway: the [assets] setting in wrangler.toml makes Cloudflare
+// serve everything in /public itself, before this code ever runs.
+if (typeof __dirname !== 'undefined') {
+  app.use(express.static(path.join(__dirname, 'public')));
+}
 
 const SESSION_MAX_AGE = 1000 * 60 * 60 * 8; // 8 hours
 
