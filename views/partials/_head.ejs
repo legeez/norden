@@ -1,0 +1,27 @@
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title><%= seo.title %></title>
+<meta name="description" content="<%= seo.description %>">
+<meta name="robots" content="<%= seo.noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1' %>">
+<link rel="canonical" href="<%= seo.canonical %>">
+<% (seo.alternates || []).forEach(function(a){ %><link rel="alternate" hreflang="<%= a.hreflang %>" href="<%= a.href %>">
+<% }) %><meta name="theme-color" content="#141C2E">
+<meta property="og:site_name" content="Norden Trading Plc">
+<meta property="og:type" content="<%= seo.ogType %>">
+<meta property="og:title" content="<%= seo.title %>">
+<meta property="og:description" content="<%= seo.description %>">
+<meta property="og:url" content="<%= seo.canonical %>">
+<meta property="og:image" content="<%= seo.image %>">
+<meta property="og:locale" content="<%= seo.locale %>">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="<%= seo.title %>">
+<meta name="twitter:description" content="<%= seo.description %>">
+<meta name="twitter:image" content="<%= seo.image %>">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<% if (lang === 'am') { %><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<% } else { %><link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<% } %><link rel="stylesheet" href="/css/style.css?v=<%= seo.assetVersion %>">
+<% if (seo.jsonld) { %><script type="application/ld+json"><%- seo.jsonld %></script>
+<% } %>

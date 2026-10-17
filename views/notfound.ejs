@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="notfound">
+  <div class="wrap">
+    <div class="code">404</div>
+    <h1 data-en>We couldn't find that page</h1>
+    <h1 data-am>ይህን ገጽ ማግኘት አልቻልንም</h1>
+    <p class="lead" data-en>The link may be old or mistyped. Try one of these instead.</p>
+    <p class="lead" data-am>ሊንኩ የቆየ ወይም የተሳሳተ ሊሆን ይችላል። በምትኩ ከእነዚህ አንዱን ይሞክሩ።</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="<%= home %>"><span data-en>Go to homepage</span><span data-am>ወደ መነሻ ገጽ</span></a>
+      <a class="btn btn-outline" href="<%= prefix %>/products"><span data-en>Browse templates</span><span data-am>ቅጾችን ይመልከቱ</span></a>
+    </div>
+  </div>
+</section>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+</body>
+</html>

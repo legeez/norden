@@ -18,12 +18,12 @@
         <p class="hint" style="margin-top:0;">No orders yet.</p>
       <% } else { %>
       <table>
-        <tr><th>Date</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Reference</th></tr>
+        <tr><th>Date</th><th>Customer</th><th>Item</th><th>Amount</th><th>Status</th><th>Reference</th></tr>
         <% orders.forEach(function(o){ %>
         <tr>
           <td><%= new Date(o.created_at).toLocaleString() %></td>
           <td><%= o.customer_name %><br><span class="hint" style="margin:0;"><%= o.customer_email %> · <%= o.customer_phone %></span></td>
-          <td><%= o.service_title %></td>
+          <td><%= o.service_title %><% if (o.item_type === 'product') { %> <span class="badge badge-pending">Download</span><% if (o.status === 'paid' && o.download_token) { %><br><a href="/download/<%= o.download_token %>" class="hint" style="margin:0; text-decoration:underline;">Customer download link (<%= o.download_count || 0 %> used)</a><% } %><% } %></td>
           <td><%= o.amount.toLocaleString('en-US') %> <%= o.currency %></td>
           <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
           <td style="font-family:var(--font-mono); font-size:11px;"><%= o.tx_ref %></td>

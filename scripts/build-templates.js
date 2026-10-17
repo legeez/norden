@@ -37,17 +37,26 @@ const OUT_FILE = path.join(__dirname, '..', 'worker', 'templates.generated.js');
 // means the destructuring below can never accidentally miss or mis-scope a
 // name.
 const LOCALS_KEYS = {
-  'index': ['content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery'],
+  'index': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery', 'products', 'categories', 'seo'],
+  'products': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'groups', 'hasProducts', 'categories', 'seo'],
+  'product': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'product', 'cat', 'related', 'seo'],
+  'service': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'service', 'process', 'whyUs', 'products', 'seo'],
+  'notfound': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'seo'],
+  'partials/_head': ['seo', 'lang'],
+  'partials/_header': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content'],
+  'partials/_footer': ['lang', 'prefix', 'home', 'content', 'services'],
+  'partials/_productcard': ['lang', 'prefix', 'p'],
   'admin/_sidebar': ['active'],
   'admin/login': ['error'],
   'admin/dashboard': ['serviceCount', 'orderCount', 'paidCount', 'revenue', 'recentOrders'],
   'admin/content': ['content', 'saved'],
   'admin/services': ['services'],
+  'admin/products': ['products', 'categories', 'setupNeeded', 'error', 'saved'],
   'admin/blocks': ['section', 'items'],
   'admin/gallery': ['items'],
   'admin/orders': ['orders'],
   'checkout/form': ['service', 'error'],
-  'checkout/success': ['order'],
+  'checkout/success': ['order', 'downloadUrl'],
   'checkout/failed': ['message', 'order']
 };
 

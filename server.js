@@ -11,6 +11,19 @@ const checkoutRoutes = require('./routes/checkout');
 
 const app = express();
 
+// Behind Cloudflare the visitor's real address/protocol arrive in headers.
+app.set('trust proxy', true);
+app.disable('x-powered-by');
+
+// Light security headers + keep private areas out of search engines.
+app.use((req, res, next) => {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.set('X-Frame-Options', 'SAMEORIGIN');
+  if (/^\/(admin|checkout|download|chapa)(\/|$)/.test(req.path)) res.set('X-Robots-Tag', 'noindex, nofollow');
+  next();
+});
+
 // No `app.set('view engine', ...)` here on purpose — every route renders
 // through lib/render.js (bundled, precompiled templates) instead of Express's
 // default fs-based view lookup, so the exact same code path runs locally and
@@ -40,8 +53,16 @@ app.use('/', publicRoutes);
 app.use('/', checkoutRoutes);
 app.use('/admin', adminRoutes);
 
-app.use((req, res) => {
-  res.status(404).send('Page not found.');
+// Friendly, branded 404 (marked noindex so it never gets listed in Google).
+app.use(async (req, res) => {
+  try {
+    const store = require('./lib/store');
+    const content = await store.getContent();
+    const lang = /^\/am(\/|$)/.test(req.path) ? 'am' : 'en';
+    return publicRoutes.notFound(req, res, lang, content);
+  } catch (e) {
+    res.status(404).send('Page not found.');
+  }
 });
 
 // Friendly fallback for unhandled errors — most commonly a missing/incorrect

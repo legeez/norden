@@ -1,0 +1,39 @@
+<a class="skip-link" href="#main"><span data-en>Skip to content</span><span data-am>ወደ ይዘት ዝለል</span></a>
+<header class="site-header" id="site-header">
+  <div class="wrap nav">
+    <a class="brand" href="<%= home %>">
+      <span class="word"><%= content.company_name.en.toUpperCase() %></span>
+      <span class="sub" data-en>CONSTRUCTION · PLC</span>
+      <span class="sub" data-am>ግንባታ · አ.ማ</span>
+    </a>
+    <nav class="nav-links" id="site-nav" aria-label="Main">
+      <a class="nav-link" href="<%= home %>#about" data-en>Company</a>
+      <a class="nav-link" href="<%= home %>#about" data-am>ኩባንያ</a>
+      <a class="nav-link" href="<%= home %>#services" data-en>Services</a>
+      <a class="nav-link" href="<%= home %>#services" data-am>አገልግሎቶች</a>
+      <a class="nav-link" href="<%= prefix %>/products" data-en>Templates</a>
+      <a class="nav-link" href="<%= prefix %>/products" data-am>የሰነድ ቅጾች</a>
+      <a class="nav-link" href="<%= home %>#process" data-en>Process</a>
+      <a class="nav-link" href="<%= home %>#process" data-am>የስራ ሂደት</a>
+      <a class="nav-link" href="<%= home %>#projects" data-en>Projects</a>
+      <a class="nav-link" href="<%= home %>#projects" data-am>ፕሮጀክቶች</a>
+      <a class="nav-link" href="<%= home %>#contact" data-en>Contact</a>
+      <a class="nav-link" href="<%= home %>#contact" data-am>ያግኙን</a>
+      <a class="btn btn-primary nav-cta-mobile" href="<%= home %>#services">
+        <span data-en>Request a Quote</span><span data-am>ዋጋ ይጠይቁ</span>
+      </a>
+    </nav>
+    <div class="nav-actions">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <a href="<%= enUrl %>" lang="en" hreflang="en" class="<%= lang === 'en' ? 'active' : '' %>" <%- lang === 'en' ? 'aria-current="true"' : '' %>>EN</a>
+        <a href="<%= amUrl %>" lang="am" hreflang="am" class="<%= lang === 'am' ? 'active' : '' %>" <%- lang === 'am' ? 'aria-current="true"' : '' %>>አማ</a>
+      </div>
+      <a href="<%= home %>#services" class="btn btn-primary nav-quote">
+        <span data-en>Request a Quote</span><span data-am>ዋጋ ይጠይቁ</span>
+      </a>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>

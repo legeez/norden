@@ -169,3 +169,13 @@ views/                                    EJS templates (source of truth — bun
 public/css/style.css                      Public site styling (served as a static asset on Cloudflare)
 public/css/admin.css                      Admin panel styling (same)
 ```
+
+
+## Products, mobile layout and SEO (October 2026 upgrade)
+
+See **docs/UPGRADE-GUIDE.md** for the step-by-step setup (run `migrations/002_products_and_seo.sql`, set `SITE_URL`, upload products, submit the sitemap to Google).
+
+* Public pages are served per language: `/` (English) and `/am` (Amharic). `lib/render.js` removes the other language from the HTML on the server.
+* SEO helpers (titles, canonical links, hreflang, schema.org data) live in `lib/seo.js`; `/sitemap.xml` and `/robots.txt` are generated in `routes/public.js`.
+* Product files are stored in a **private** Supabase bucket (`products`) and served through short-lived signed links after payment is confirmed (`routes/checkout.js`, `lib/files.js`).
+* New templates must be registered in `scripts/build-templates.js` (`LOCALS_KEYS`).

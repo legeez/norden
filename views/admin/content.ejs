@@ -63,6 +63,19 @@
       </div>
 
       <div class="card">
+        <h2>Google Search Appearance (SEO)</h2>
+        <p class="hint" style="margin-top:-6px;">What people see in Google results for your homepage. Leave blank to use the automatic text. Keep the title under about 60 characters and the description under about 155.</p>
+        <div class="lang-col">
+          <div><label>Search Title (English)</label><input type="text" name="seo_title_en" maxlength="70" value="<%= content.seo_title.en %>"></div>
+          <div><label>Search Title (Amharic)</label><input type="text" name="seo_title_am" maxlength="70" value="<%= content.seo_title.am %>"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Search Description (English)</label><textarea name="seo_description_en" maxlength="170"><%= content.seo_description.en %></textarea></div>
+          <div><label>Search Description (Amharic)</label><textarea name="seo_description_am" maxlength="170"><%= content.seo_description.am %></textarea></div>
+        </div>
+      </div>
+
+      <div class="card">
         <h2>Footer</h2>
         <div class="lang-col">
           <div><label>Tagline (English)</label><textarea name="footer_tagline_en"><%= content.footer_tagline.en %></textarea></div>

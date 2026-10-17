@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
+      <span aria-current="page"><span data-en>Templates</span><span data-am>የሰነድ ቅጾች</span></span>
+    </nav>
+    <h1 data-en>BOQ, Cost Breakdown &amp; Agreement Templates</h1>
+    <h1 data-am>የBOQ፣ የወጪ ትንተና እና የስምምነት ቅጾች</h1>
+    <p class="lead" data-en>Ready-to-use Excel and Word files for Ethiopian construction projects. Pay securely with Chapa and download straight away.</p>
+    <p class="lead" data-am>ለኢትዮጵያ ግንባታ ፕሮጀክቶች ዝግጁ የሆኑ የExcel እና የWord ፋይሎች። በChapa በደህንነት ይክፈሉ እና ወዲያውኑ ያውርዱ።</p>
+    <% if (groups.length > 1) { %>
+    <div class="cat-chips">
+      <% groups.forEach(function(g){ %>
+      <a href="#<%= g.key %>"><span data-en><%= g.en %></span><span data-am><%= g.am %></span></a>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<section class="band" style="padding-top:clamp(40px,6vw,64px);">
+  <div class="wrap">
+    <% if (!hasProducts) { %>
+    <p class="empty-note" data-en>New templates are being added. Check back soon, or contact us for a custom BOQ or cost sheet.</p>
+    <p class="empty-note" data-am>አዳዲስ ቅጾች በመጨመር ላይ ናቸው። በቅርቡ ይመለሱ፣ ወይም ለብጁ BOQ ወይም የወጪ ሉህ ያግኙን።</p>
+    <% } %>
+    <% groups.forEach(function(g){ %>
+    <div class="group" id="<%= g.key %>">
+      <h2><span data-en><%= g.en %></span><span data-am><%= g.am %></span></h2>
+      <p class="lead" data-en><%= g.blurb_en %></p>
+      <p class="lead" data-am><%= g.blurb_am %></p>
+      <div class="prod-grid">
+        <% g.items.forEach(function(p){ %>
+        <%- include('partials/_productcard', { lang: lang, prefix: prefix, p: p }) %>
+        <% }) %>
+      </div>
+    </div>
+    <% }) %>
+    <div class="note-box">
+      <span data-en>Templates are general-purpose starting points. Check rates, tax percentages and contract terms against your project and current Ethiopian rules before relying on them, and have agreements reviewed by a qualified lawyer.</span>
+      <span data-am>ቅጾቹ አጠቃላይ መነሻዎች ናቸው። ከመጠቀምዎ በፊት ዋጋዎችን፣ የታክስ መጠኖችን እና የውል ድንጋጌዎችን ከፕሮጀክትዎ እና ከወቅታዊ የኢትዮጵያ ህጎች ጋር ያመሳስሉ፤ ስምምነቶችንም ብቁ በሆነ የህግ ባለሙያ ያስመልከቱ።</span>
+    </div>
+  </div>
+</section>
+
+<section class="cta-band">
+  <div class="wrap inner">
+    <h2 data-en>Need a BOQ or cost sheet made for your project?</h2>
+    <h2 data-am>ለፕሮጀክትዎ የተዘጋጀ BOQ ወይም የወጪ ሉህ ይፈልጋሉ?</h2>
+    <a class="btn btn-primary" href="<%= home %>#services"><span data-en>See our services</span><span data-am>አገልግሎቶቻችንን ይመልከቱ</span></a>
+  </div>
+</section>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<article class="prod-card">
+  <a class="file-tile" href="<%= prefix %>/products/<%= p.slug %>" tabindex="-1" aria-hidden="true">
+    <% if (p.image) { %><img src="<%= p.image %>" alt="" loading="lazy" decoding="async"><% } %>
+    <span class="ext"><%= p.file_type || 'FILE' %></span>
+    <span class="cat" data-en><%= p.cat_en %></span><span class="cat" data-am><%= p.cat_am %></span>
+  </a>
+  <div class="prod-body">
+    <h3><a href="<%= prefix %>/products/<%= p.slug %>"><span data-en><%= p.title_en %></span><span data-am><%= p.title_am || p.title_en %></span></a></h3>
+    <p data-en><%= p.desc_en %></p>
+    <p data-am><%= p.desc_am || p.desc_en %></p>
+    <div class="prod-foot">
+      <span class="price-tag"><%= p.price.toLocaleString('en-US') %> <%= p.currency %></span>
+      <a class="btn btn-dark" href="<%= prefix %>/products/<%= p.slug %>"><span data-en>View &amp; buy</span><span data-am>ይመልከቱ እና ይግዙ</span></a>
+    </div>
+  </div>
+</article>

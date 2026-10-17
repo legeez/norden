@@ -1,48 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" id="html-root">
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><%= content.company_name.en %> — Construction &amp; Quantity Surveying, Addis Ababa</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/css/style.css">
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
 </head>
 <body>
 
-<header>
-  <div class="wrap nav">
-    <div class="brand">
-      <span class="word"><%= content.company_name.en.toUpperCase() %></span>
-      <span class="sub" data-en>CONSTRUCTION · PLC</span>
-      <span class="sub" data-am>ግንባታ · አ.ማ</span>
-    </div>
-    <nav class="nav-links">
-      <a class="nav-link" href="#about" data-en>Company</a>
-      <a class="nav-link" href="#about" data-am>ኩባንያ</a>
-      <a class="nav-link" href="#services" data-en>Services</a>
-      <a class="nav-link" href="#services" data-am>አገልግሎቶች</a>
-      <a class="nav-link" href="#process" data-en>Process</a>
-      <a class="nav-link" href="#process" data-am>የስራ ሂደት</a>
-      <a class="nav-link" href="#projects" data-en>Projects</a>
-      <a class="nav-link" href="#projects" data-am>ፕሮጀክቶች</a>
-      <a class="nav-link" href="#contact" data-en>Contact</a>
-      <a class="nav-link" href="#contact" data-am>አግኙን</a>
-    </nav>
-    <div class="nav-actions">
-      <div class="lang-toggle">
-        <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
-        <button id="btn-am" onclick="setLang('am')">አማ</button>
-      </div>
-      <a href="#services" class="btn btn-primary">
-        <span data-en>Request a Quote</span>
-        <span data-am>ዋጋ ይጠይቁ</span>
-      </a>
-    </div>
-  </div>
-</header>
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
 
+<main id="main">
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
@@ -59,9 +24,9 @@
           <span data-en>Get a Free Estimate</span>
           <span data-am>ነጻ ግምት ያግኙ</span>
         </a>
-        <a href="#services" class="btn btn-ghost">
-          <span data-en>View Services</span>
-          <span data-am>አገልግሎቶችን ይመልከቱ</span>
+        <a href="<%= prefix %>/products" class="btn btn-ghost">
+          <span data-en>Download Templates</span>
+          <span data-am>ቅጾችን ያውርዱ</span>
         </a>
       </div>
     </div>
@@ -91,43 +56,43 @@
           <tr>
             <td>01</td>
             <td><span data-en>Site clearance &amp; excavation</span><span data-am>ቦታ ማጽዳት እና ቁፋሮ</span></td>
-            <td class="count-amt" data-target="412">0</td>
+            <td class="count-amt" data-target="412">412</td>
             <td>m³</td>
-            <td class="amt count-amt" data-target="185400">0</td>
+            <td class="amt count-amt" data-target="185400">185,400</td>
           </tr>
           <tr>
             <td>02</td>
             <td><span data-en>C-25 foundation concrete</span><span data-am>C-25 የመሰረት ኮንክሪት</span></td>
-            <td class="count-amt" data-target="96">0</td>
+            <td class="count-amt" data-target="96">96</td>
             <td>m³</td>
-            <td class="amt count-amt" data-target="1248000">0</td>
+            <td class="amt count-amt" data-target="1248000">1,248,000</td>
           </tr>
           <tr>
             <td>03</td>
             <td><span data-en>Reinforcement steel, Ø12–20</span><span data-am>ብረት ማጠናከሪያ Ø12–20</span></td>
-            <td class="count-amt" data-target="8.4">0</td>
+            <td class="count-amt" data-target="8.4">8.4</td>
             <td>ton</td>
-            <td class="amt count-amt" data-target="672000">0</td>
+            <td class="amt count-amt" data-target="672000">672,000</td>
           </tr>
           <tr>
             <td>04</td>
             <td><span data-en>Masonry block wall, 20cm</span><span data-am>ብሎኬት ግድግዳ 20ሳ.ሜ</span></td>
-            <td class="count-amt" data-target="210">0</td>
+            <td class="count-amt" data-target="210">210</td>
             <td>m²</td>
-            <td class="amt count-amt" data-target="294000">0</td>
+            <td class="amt count-amt" data-target="294000">294,000</td>
           </tr>
         </tbody>
       </table>
       <div class="boq-total">
         <span class="label" data-en>Estimated Subtotal</span>
         <span class="label" data-am>ግምት ድምር</span>
-        <span class="value">ETB <span class="count-amt" data-target="2399400">0</span></span>
+        <span class="value">ETB <span class="count-amt" data-target="2399400">2,399,400</span></span>
       </div>
     </div>
   </div>
 </section>
 
-<div class="strip">
+<div class="strip" aria-hidden="true">
   <div class="strip-track">
     <% for(let i=0;i<2;i++){ %>
     <span><span>◆</span><span data-en>QUANTITY TAKE-OFF</span><span data-am>መጠን ማውጣት</span></span>
@@ -152,7 +117,7 @@
     <div class="about-grid">
       <div class="about-figure">
         <% if (content.about_image.en) { %>
-          <img src="<%= content.about_image.en %>" alt="<%= content.about_title.en %>">
+          <img src="<%= content.about_image.en %>" alt="<%= content.about_title.en %>" loading="lazy" decoding="async">
         <% } else { %>
           <div class="cap" data-en>[ Project photo — add one in the admin panel ]</div>
           <div class="cap" data-am>[ የፕሮጀክት ፎቶ — ከአስተዳደር ፓነል ይጨምሩ ]</div>
@@ -191,18 +156,48 @@
       <% services.forEach(function(s, i){ %>
       <div class="svc-card">
         <span class="num"><%= String(i+1).padStart(2,'0') %> / <%= String(services.length).padStart(2,'0') %></span>
-        <h3 data-en><%= s.title_en %></h3>
-        <h3 data-am><%= s.title_am %></h3>
+        <h3><a href="<%= prefix %>/services/<%= s.slug %>"><span data-en><%= s.title_en %></span><span data-am><%= s.title_am || s.title_en %></span></a></h3>
         <p data-en><%= s.desc_en %></p>
-        <p data-am><%= s.desc_am %></p>
+        <p data-am><%= s.desc_am || s.desc_en %></p>
         <div class="price"><span data-en>From </span><span data-am>ከ</span><%= s.price.toLocaleString('en-US') %> <%= s.currency %></div>
-        <a class="btn btn-primary" href="/checkout/<%= s.id %>">
-          <span data-en>Buy Now</span>
-          <span data-am>ይግዙ</span>
-        </a>
+        <div class="svc-actions">
+          <a class="btn btn-primary" href="/checkout/<%= s.id %>">
+            <span data-en>Buy Now</span>
+            <span data-am>ይግዙ</span>
+          </a>
+          <a class="more" href="<%= prefix %>/services/<%= s.slug %>">
+            <span data-en>Details</span>
+            <span data-am>ዝርዝር</span>
+          </a>
+        </div>
       </div>
       <% }) %>
     </div>
+  </div>
+</section>
+
+<section class="products" id="templates">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>DOWNLOADS</span><span data-am>ማውረጃዎች</span></div>
+      <h2 data-en>BOQ, Cost &amp; Contract Templates</h2>
+      <h2 data-am>የBOQ፣ የወጪ እና የውል ቅጾች</h2>
+      <p class="lead" data-en>Excel and Word files we use ourselves. Pay with Chapa and download straight away.</p>
+      <p class="lead" data-am>እኛ ራሳችን የምንጠቀምባቸው የExcel እና የWord ፋይሎች። በChapa ይክፈሉ እና ወዲያውኑ ያውርዱ።</p>
+    </div>
+    <% if (products.length === 0) { %>
+    <p class="empty-note" data-en>New templates are being added. Check back soon, or contact us for a custom BOQ or cost sheet.</p>
+    <p class="empty-note" data-am>አዳዲስ ቅጾች በመጨመር ላይ ናቸው። በቅርቡ ይመለሱ፣ ወይም ለብጁ BOQ ወይም የወጪ ሉህ ያግኙን።</p>
+    <% } else { %>
+    <div class="prod-grid">
+      <% products.forEach(function(p){ %>
+      <%- include('partials/_productcard', { lang: lang, prefix: prefix, p: p }) %>
+      <% }) %>
+    </div>
+    <div class="section-more">
+      <a class="btn btn-outline" href="<%= prefix %>/products"><span data-en>See all templates</span><span data-am>ሁሉንም ቅጾች ይመልከቱ</span></a>
+    </div>
+    <% } %>
   </div>
 </section>
 
@@ -260,7 +255,7 @@
       <% } %>
       <% gallery.forEach(function(g){ %>
       <div class="proj-tile">
-        <img src="<%= g.image %>" alt="">
+        <img src="<%= g.image %>" alt="<%= g.caption_en || (content.company_name.en + ' project') %>" loading="lazy" decoding="async">
         <% if (g.caption_en || g.caption_am) { %>
           <span class="cap" data-en><%= g.caption_en %></span>
           <span class="cap" data-am><%= g.caption_am %></span>
@@ -287,99 +282,66 @@
           <div>
             <dt data-en>Office</dt><dt data-am>ቢሮ</dt>
             <dd data-en><%= content.contact_office.en %></dd>
-            <dd data-am><%= content.contact_office.am %></dd>
+            <dd data-am><%= content.contact_office.am || content.contact_office.en %></dd>
           </div>
           <div>
             <dt data-en>Phone</dt><dt data-am>ስልክ</dt>
-            <dd><%= content.contact_phone.en %></dd>
+            <dd><a href="tel:<%= content.contact_phone.en.replace(/[^+\d]/g, '') %>"><%= content.contact_phone.en %></a></dd>
           </div>
           <div>
             <dt data-en>Email</dt><dt data-am>ኢሜይል</dt>
-            <dd><%= content.contact_email.en %></dd>
+            <dd><a href="mailto:<%= content.contact_email.en %>"><%= content.contact_email.en %></a></dd>
           </div>
           <div>
             <dt data-en>Hours</dt><dt data-am>የስራ ሰዓት</dt>
             <dd data-en><%= content.contact_hours.en %></dd>
-            <dd data-am><%= content.contact_hours.am %></dd>
+            <dd data-am><%= content.contact_hours.am || content.contact_hours.en %></dd>
           </div>
         </dl>
       </div>
       <div>
-        <div class="svc-grid" style="border:1px solid var(--line-dark); background:var(--line-dark); grid-template-columns:1fr;">
-        </div>
         <p class="lead" data-en>Prefer to talk first? Call or email us, and we'll help you choose the right service.</p>
         <p class="lead" data-am>መጀመሪያ ማውራት ይፈልጋሉ? ይደውሉልን ወይም ኢሜይል ይላኩልን፤ ትክክለኛውን አገልግሎት እንድመርጡ እንረዳዎታለን።</p>
+        <div class="contact-actions">
+          <a class="btn btn-primary" href="tel:<%= content.contact_phone.en.replace(/[^+\d]/g, '') %>"><span data-en>Call us</span><span data-am>ይደውሉልን</span></a>
+          <a class="btn btn-outline" href="mailto:<%= content.contact_email.en %>"><span data-en>Send an email</span><span data-am>ኢሜይል ይላኩ</span></a>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<footer>
-  <div class="wrap">
-    <div class="foot-grid">
-      <div class="foot-brand">
-        <div class="word"><%= content.company_name.en.toUpperCase() %></div>
-        <p data-en><%= content.footer_tagline.en %></p>
-        <p data-am><%= content.footer_tagline.am %></p>
-      </div>
-      <div class="foot-col">
-        <h4 data-en>Company</h4><h4 data-am>ኩባንያ</h4>
-        <a href="#about" data-en>About</a><a href="#about" data-am>ስለ እኛ</a>
-        <a href="#projects" data-en>Projects</a><a href="#projects" data-am>ፕሮጀክቶች</a>
-      </div>
-      <div class="foot-col">
-        <h4 data-en>Services</h4><h4 data-am>አገልግሎቶች</h4>
-        <a href="#services" data-en>All Services</a><a href="#services" data-am>ሁሉም አገልግሎቶች</a>
-      </div>
-      <div class="foot-col">
-        <h4 data-en>Contact</h4><h4 data-am>ያግኙን</h4>
-        <a href="#contact" data-en>Get an Estimate</a><a href="#contact" data-am>ግምት ያግኙ</a>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <span data-en>© 2026 <%= content.company_name.en %>. All rights reserved.</span>
-      <span data-am>© 2026 <%= content.company_name.am %> ሁሉም መብቶች የተጠበቁ ናቸው።</span>
-      <span data-en>Addis Ababa, Ethiopia</span>
-      <span data-am>አዲስ አበባ፣ ኢትዮጵያ</span>
-    </div>
-  </div>
-</footer>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
 
 <script>
-function setLang(lang){
-  const root = document.getElementById('html-root');
-  if(lang === 'am'){
-    root.classList.add('lang-am');
-    document.getElementById('btn-am').classList.add('active');
-    document.getElementById('btn-en').classList.remove('active');
-    root.setAttribute('lang','am');
-  } else {
-    root.classList.remove('lang-am');
-    document.getElementById('btn-en').classList.add('active');
-    document.getElementById('btn-am').classList.remove('active');
-    root.setAttribute('lang','en');
-  }
-}
 function formatNum(n){ return Math.round(n).toLocaleString('en-US'); }
+// The real numbers are in the HTML (good for search engines and no-JS visitors);
+// when motion is allowed they count up from zero for the visitor.
+var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduceMotion){ document.querySelectorAll('.count-amt').forEach(function(el){ el.textContent = '0'; }); }
 function animateCounts(){
-  document.querySelectorAll('.count-amt').forEach(el => {
-    const target = parseFloat(el.getAttribute('data-target'));
-    const isDecimal = target % 1 !== 0;
-    let start = null;
-    const duration = 1400;
+  if(reduceMotion) return;
+  document.querySelectorAll('.count-amt').forEach(function(el){
+    var target = parseFloat(el.getAttribute('data-target'));
+    var isDecimal = target % 1 !== 0;
+    var finalText = isDecimal ? target.toFixed(1) : formatNum(target);
+    var start = null;
+    var duration = 1400;
     function step(ts){
       if(!start) start = ts;
-      const progress = Math.min((ts - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const val = target * eased;
+      var progress = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var val = target * eased;
       el.textContent = isDecimal ? val.toFixed(1) : formatNum(val);
       if(progress < 1) requestAnimationFrame(step);
-      else el.textContent = isDecimal ? target.toFixed(1) : formatNum(target);
+      else el.textContent = finalText;
     }
     requestAnimationFrame(step);
   });
 }
-window.addEventListener('load', () => setTimeout(animateCounts, 300));
+window.addEventListener('load', function(){ setTimeout(animateCounts, 300); });
 </script>
 
 </body>

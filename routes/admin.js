@@ -3,6 +3,9 @@ const router = express.Router();
 const multer = require('multer');
 const store = require('../lib/store');
 const { uploadImage } = require('../lib/upload');
+const files = require('../lib/files');
+const seo = require('../lib/seo');
+const { CATEGORIES } = require('../lib/catalog');
 const { requireAdmin } = require('../lib/auth');
 const { render } = require('../lib/render');
 
@@ -16,6 +19,20 @@ const upload = multer({
     cb(null, true);
   }
 });
+
+// Product forms carry a cover image AND a downloadable file (Excel/Word/PDF).
+const productUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'image_file') {
+      if (!/^image\/(png|jpe?g|webp|gif)$/.test(file.mimetype)) return cb(new Error('Cover image must be PNG, JPG, WEBP or GIF.'));
+    } else if (file.fieldname === 'product_file') {
+      if (!files.isAllowedFile(file.originalname)) return cb(new Error('Product file must be Excel, Word, PDF or ZIP.'));
+    }
+    cb(null, true);
+  }
+}).fields([{ name: 'image_file', maxCount: 1 }, { name: 'product_file', maxCount: 1 }]);
 
 // ---------- Login ----------
 router.get('/login', (req, res) => {
@@ -63,6 +80,9 @@ router.post('/content', upload.single('about_image_file'), async (req, res, next
       const en = req.body[`${key}_en`];
       const am = req.body[`${key}_am`];
       updates[key] = { en: en !== undefined ? en : content[key].en, am: am !== undefined ? am : content[key].am };
+    });
+    ['seo_title', 'seo_description'].forEach(key => {
+      updates[key] = { en: (req.body[`${key}_en`] || '').trim(), am: (req.body[`${key}_am`] || '').trim() };
     });
     if (req.file) {
       const url = await uploadImage(req.file, 'content');
@@ -175,6 +195,85 @@ router.post('/gallery/:id/delete', async (req, res, next) => {
   try {
     await store.deleteGalleryItem(Number(req.params.id));
     res.redirect('/admin/gallery');
+  } catch (err) { next(err); }
+});
+
+// ---------- Products (downloadable files sold through Chapa) ----------
+function productFields(body) {
+  return {
+    category: CATEGORIES.some(c => c.key === body.category) ? body.category : 'other',
+    title_en: (body.title_en || '').trim(), title_am: (body.title_am || '').trim(),
+    desc_en: (body.desc_en || '').trim(), desc_am: (body.desc_am || '').trim(),
+    price: Number(body.price) || 0,
+    currency: (body.currency || 'ETB').trim() || 'ETB'
+  };
+}
+
+router.get('/products', async (req, res, next) => {
+  try {
+    let products = [];
+    let setupNeeded = false;
+    try { products = await store.listProducts(); } catch (e) { setupNeeded = true; }
+    res.send(render('admin/products', { products, categories: CATEGORIES, setupNeeded, error: req.query.error || '', saved: req.query.saved === '1' }));
+  } catch (err) { next(err); }
+});
+
+router.post('/products', (req, res, next) => {
+  productUpload(req, res, async (uploadErr) => {
+    try {
+      if (uploadErr) return res.redirect('/admin/products?error=' + encodeURIComponent(uploadErr.message));
+      const f = productFields(req.body);
+      if (!f.title_en) return res.redirect('/admin/products?error=' + encodeURIComponent('Please enter an English title.'));
+      const upFile = req.files && req.files.product_file && req.files.product_file[0];
+      if (!upFile) return res.redirect('/admin/products?error=' + encodeURIComponent('Please choose the file customers will download.'));
+      const upImage = req.files && req.files.image_file && req.files.image_file[0];
+
+      // Slug = the readable web address, e.g. /products/building-boq-template
+      let slug = seo.slugify(req.body.slug) || seo.slugify(f.title_en) || 'product';
+      const existing = await store.listProducts();
+      if (existing.some(p => p.slug === slug)) slug = `${slug}-${existing.length + 1}`;
+
+      const stored = await files.uploadProductFile(upFile);
+      const image = upImage ? await uploadImage(upImage, 'products') : '';
+      await store.createProduct({ ...f, slug, ...stored, image });
+      res.redirect('/admin/products?saved=1');
+    } catch (err) { next(err); }
+  });
+});
+
+router.post('/products/:id/update', (req, res, next) => {
+  productUpload(req, res, async (uploadErr) => {
+    try {
+      if (uploadErr) return res.redirect('/admin/products?error=' + encodeURIComponent(uploadErr.message));
+      const id = Number(req.params.id);
+      const current = await store.getProduct(id);
+      if (!current) return res.redirect('/admin/products');
+      const fields = {
+        ...productFields(req.body),
+        slug: seo.slugify(req.body.slug) || current.slug,
+        order: Number(req.body.order) || undefined,
+        active: req.body.active === 'on'
+      };
+      const upFile = req.files && req.files.product_file && req.files.product_file[0];
+      const upImage = req.files && req.files.image_file && req.files.image_file[0];
+      if (upFile) {
+        Object.assign(fields, await files.uploadProductFile(upFile));
+        await files.removeProductFile(current.file_path); // replace, don't pile up old versions
+      }
+      if (upImage) fields.image = await uploadImage(upImage, 'products');
+      await store.updateProduct(id, fields);
+      res.redirect('/admin/products?saved=1');
+    } catch (err) { next(err); }
+  });
+});
+
+router.post('/products/:id/delete', async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    const current = await store.getProduct(id);
+    await store.deleteProduct(id);
+    if (current) await files.removeProductFile(current.file_path);
+    res.redirect('/admin/products');
   } catch (err) { next(err); }
 });
 

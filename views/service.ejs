@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
+      <a href="<%= home %>#services"><span data-en>Services</span><span data-am>አገልግሎቶች</span></a><span class="sep">/</span>
+      <span aria-current="page"><span data-en><%= service.title_en %></span><span data-am><%= service.title_am || service.title_en %></span></span>
+    </nav>
+    <h1 data-en><%= service.title_en %> in Addis Ababa</h1>
+    <h1 data-am><%= service.title_am || service.title_en %> በአዲስ አበባ</h1>
+    <p class="lead" data-en><%= service.desc_en %></p>
+    <p class="lead" data-am><%= service.desc_am || service.desc_en %></p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap pd-grid">
+    <div class="pd-main">
+      <h2><span data-en>How it works</span><span data-am>እንዴት እንደምንሰራ</span></h2>
+      <div class="proc-track" style="margin-top:20px;">
+        <% process.forEach(function(p, i){ %>
+        <div class="proc-step">
+          <span class="num"><%= String(i+1).padStart(2,'0') %></span>
+          <h3 data-en><%= p.title_en %></h3><h3 data-am><%= p.title_am || p.title_en %></h3>
+          <p data-en><%= p.body_en %></p><p data-am><%= p.body_am || p.body_en %></p>
+        </div>
+        <% }) %>
+      </div>
+      <% if (whyUs.length) { %>
+      <h2 style="margin-top:44px;"><span data-en>Why Norden</span><span data-am>ለምን ኖርደን</span></h2>
+      <div class="why-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:20px;">
+        <% whyUs.forEach(function(w){ %>
+        <div class="why-card">
+          <h3 data-en><%= w.title_en %></h3><h3 data-am><%= w.title_am || w.title_en %></h3>
+          <p data-en><%= w.body_en %></p><p data-am><%= w.body_am || w.body_en %></p>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+    <aside class="buy-box" aria-label="Order">
+      <span class="price-tag"><span data-en>From </span><span data-am>ከ</span><%= service.price.toLocaleString('en-US') %> <%= service.currency %></span>
+      <a class="btn btn-primary" href="/checkout/<%= service.id %>"><span data-en>Buy now</span><span data-am>አሁን ይግዙ</span></a>
+      <ul>
+        <li data-en>Pay securely with Chapa</li><li data-am>በChapa በደህንነት ይክፈሉ</li>
+        <li data-en>Prepared by our team in Addis Ababa</li><li data-am>በአዲስ አበባ ባለው ቡድናችን የሚዘጋጅ</li>
+        <li data-en>Questions first? Call or email us</li><li data-am>መጀመሪያ ጥያቄ አለዎት? ይደውሉልን ወይም ኢሜይል ይላኩልን</li>
+      </ul>
+      <a class="btn btn-outline" href="<%= home %>#contact"><span data-en>Contact us</span><span data-am>ያግኙን</span></a>
+    </aside>
+  </div>
+</section>
+
+<% if (products.length) { %>
+<section class="band alt">
+  <div class="wrap">
+    <h2 style="font-size:clamp(22px,3vw,28px);"><span data-en>Prefer to do it yourself? Start with a template</span><span data-am>ራስዎ መስራት ይመርጣሉ? ከቅጽ ይጀምሩ</span></h2>
+    <div class="prod-grid">
+      <% products.forEach(function(p){ %>
+      <%- include('partials/_productcard', { lang: lang, prefix: prefix, p: p }) %>
+      <% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+</body>
+</html>

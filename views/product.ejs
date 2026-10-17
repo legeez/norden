@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
+      <a href="<%= prefix %>/products"><span data-en>Templates</span><span data-am>የሰነድ ቅጾች</span></a><span class="sep">/</span>
+      <span aria-current="page"><span data-en><%= product.title_en %></span><span data-am><%= product.title_am || product.title_en %></span></span>
+    </nav>
+    <h1 data-en><%= product.title_en %></h1>
+    <h1 data-am><%= product.title_am || product.title_en %></h1>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap pd-grid">
+    <div class="pd-main">
+      <h2><span data-en>About this file</span><span data-am>ስለዚህ ፋይል</span></h2>
+      <p class="rich" data-en><%= product.desc_en %></p>
+      <p class="rich" data-am><%= product.desc_am || product.desc_en %></p>
+      <dl class="pd-facts">
+        <div><dt data-en>Category</dt><dt data-am>ምድብ</dt><dd data-en><%= cat.en %></dd><dd data-am><%= cat.am %></dd></div>
+        <div><dt data-en>Format</dt><dt data-am>ፎርማት</dt><dd><%= product.file_type || 'FILE' %></dd></div>
+        <% if (product.file_size) { %><div><dt data-en>Size</dt><dt data-am>መጠን</dt><dd><%= product.file_size >= 1048576 ? (product.file_size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(product.file_size / 1024)) + ' KB' %></dd></div><% } %>
+        <div><dt data-en>Delivery</dt><dt data-am>አቀራረብ</dt><dd data-en>Instant download</dd><dd data-am>ወዲያውኑ ማውረድ</dd></div>
+      </dl>
+      <div class="note-box">
+        <span data-en>This is a general-purpose template. Check rates, tax percentages and terms against your project and current Ethiopian rules before relying on it<% if (product.category === 'agreement') { %>, and have the agreement reviewed by a qualified lawyer<% } %>.</span>
+        <span data-am>ይህ አጠቃላይ መነሻ ቅጽ ነው። ከመጠቀምዎ በፊት ዋጋዎችን፣ የታክስ መጠኖችን እና ድንጋጌዎችን ከፕሮጀክትዎ እና ከወቅታዊ የኢትዮጵያ ህጎች ጋር ያመሳስሉ<% if (product.category === 'agreement') { %>፤ ስምምነቱንም ብቁ በሆነ የህግ ባለሙያ ያስመልከቱ<% } %>።</span>
+      </div>
+    </div>
+    <aside class="buy-box" aria-label="Purchase">
+      <span class="price-tag"><%= product.price.toLocaleString('en-US') %> <%= product.currency %></span>
+      <span class="chip dark"><%= product.file_type || 'FILE' %></span>
+      <a class="btn btn-primary" href="/checkout/product/<%= product.id %>"><span data-en>Buy &amp; download</span><span data-am>ይግዙ እና ያውርዱ</span></a>
+      <ul>
+        <li data-en>Pay securely with Chapa</li><li data-am>በChapa በደህንነት ይክፈሉ</li>
+        <li data-en>Download link appears right after payment</li><li data-am>የማውረጃ ሊንክ ከክፍያ በኋላ ወዲያውኑ ይታያል</li>
+        <li data-en>Editable file you can adapt to your project</li><li data-am>ከፕሮጀክትዎ ጋር ማስተካከል የሚችሉት ፋይል</li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+<% if (related.length) { %>
+<section class="band alt">
+  <div class="wrap">
+    <h2 style="font-size:clamp(22px,3vw,28px);"><span data-en>More templates</span><span data-am>ተጨማሪ ቅጾች</span></h2>
+    <div class="prod-grid">
+      <% related.forEach(function(p){ %>
+      <%- include('partials/_productcard', { lang: lang, prefix: prefix, p: p }) %>
+      <% }) %>
+    </div>
+  </div>
+</section>
+<% } %>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+</body>
+</html>

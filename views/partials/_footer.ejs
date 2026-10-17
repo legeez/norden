@@ -1,0 +1,53 @@
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="word"><%= content.company_name.en.toUpperCase() %></div>
+        <p data-en><%= content.footer_tagline.en %></p>
+        <p data-am><%= content.footer_tagline.am %></p>
+      </div>
+      <div class="foot-col">
+        <h4 data-en>Explore</h4><h4 data-am>ያስሱ</h4>
+        <a href="<%= home %>#about" data-en>About us</a><a href="<%= home %>#about" data-am>ስለ እኛ</a>
+        <a href="<%= prefix %>/products" data-en>BOQ &amp; contract templates</a><a href="<%= prefix %>/products" data-am>የBOQ እና የውል ቅጾች</a>
+        <a href="<%= home %>#projects" data-en>Projects</a><a href="<%= home %>#projects" data-am>ፕሮጀክቶች</a>
+        <a href="<%= home %>#contact" data-en>Contact</a><a href="<%= home %>#contact" data-am>ያግኙን</a>
+      </div>
+      <div class="foot-col">
+        <h4 data-en>Services</h4><h4 data-am>አገልግሎቶች</h4>
+        <% (services || []).forEach(function(s){ %>
+        <a href="<%= prefix %>/services/<%= s.slug %>" data-en><%= s.title_en %></a><a href="<%= prefix %>/services/<%= s.slug %>" data-am><%= s.title_am || s.title_en %></a>
+        <% }) %>
+      </div>
+      <div class="foot-col">
+        <h4 data-en>Contact</h4><h4 data-am>ያግኙን</h4>
+        <% if (content.contact_phone.en) { %><a href="tel:<%= content.contact_phone.en.replace(/[^+\d]/g, '') %>"><%= content.contact_phone.en %></a><% } %>
+        <% if (content.contact_email.en) { %><a href="mailto:<%= content.contact_email.en %>"><%= content.contact_email.en %></a><% } %>
+        <span class="line" data-en><%= content.contact_office.en %></span><span class="line" data-am><%= content.contact_office.am || content.contact_office.en %></span>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span data-en>© 2026 <%= content.company_name.en %>. All rights reserved.</span>
+      <span data-am>© 2026 <%= content.company_name.am || content.company_name.en %> ሁሉም መብቶች የተጠበቁ ናቸው።</span>
+      <span data-en>Addis Ababa, Ethiopia</span>
+      <span data-am>አዲስ አበባ፣ ኢትዮጵያ</span>
+    </div>
+  </div>
+</footer>
+<script>
+(function(){
+  var header = document.getElementById('site-header');
+  var btn = document.getElementById('nav-toggle');
+  if(!header || !btn) return;
+  function setOpen(open){
+    header.classList.toggle('open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  btn.addEventListener('click', function(){ setOpen(!header.classList.contains('open')); });
+  document.getElementById('site-nav').addEventListener('click', function(e){
+    if(e.target.closest('a')) setOpen(false);
+  });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') setOpen(false); });
+  window.addEventListener('resize', function(){ if(window.innerWidth > 1180) setOpen(false); });
+})();
+</script>
