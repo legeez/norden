@@ -27,9 +27,9 @@ const productUpload = multer({
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'image_file') {
       if (!/^image\/(png|jpe?g|webp|gif)$/.test(file.mimetype)) return cb(new Error('Cover image must be PNG, JPG, WEBP or GIF.'));
-    } else if (file.fieldname === 'product_file') {
-      if (!files.isAllowedFile(file.originalname)) return cb(new Error('Product file must be Excel, Word, PDF or ZIP.'));
     }
+    // product_file is checked in the route handler (see checkProductFile) so the
+    // message can say exactly what the server received.
     cb(null, true);
   }
 }).fields([{ name: 'image_file', maxCount: 1 }, { name: 'product_file', maxCount: 1 }]);
@@ -199,6 +199,12 @@ router.post('/gallery/:id/delete', async (req, res, next) => {
 });
 
 // ---------- Products (downloadable files sold through Chapa) ----------
+function checkProductFile(f) {
+  if (!f) return '';
+  if (files.isAllowedUpload(f)) return '';
+  return `That file type is not allowed. Use Excel, Word, PDF or ZIP. (Received name: "${f.originalname || 'none'}", type: "${f.mimetype || 'none'}")`;
+}
+
 function productFields(body) {
   return {
     category: CATEGORIES.some(c => c.key === body.category) ? body.category : 'other',
@@ -226,6 +232,8 @@ router.post('/products', (req, res, next) => {
       if (!f.title_en) return res.redirect('/admin/products?error=' + encodeURIComponent('Please enter an English title.'));
       const upFile = req.files && req.files.product_file && req.files.product_file[0];
       if (!upFile) return res.redirect('/admin/products?error=' + encodeURIComponent('Please choose the file customers will download.'));
+      const badFile = checkProductFile(upFile);
+      if (badFile) return res.redirect('/admin/products?error=' + encodeURIComponent(badFile));
       const upImage = req.files && req.files.image_file && req.files.image_file[0];
 
       // Slug = the readable web address, e.g. /products/building-boq-template
@@ -256,6 +264,8 @@ router.post('/products/:id/update', (req, res, next) => {
       };
       const upFile = req.files && req.files.product_file && req.files.product_file[0];
       const upImage = req.files && req.files.image_file && req.files.image_file[0];
+      const badFile = checkProductFile(upFile);
+      if (badFile) return res.redirect('/admin/products?error=' + encodeURIComponent(badFile));
       if (upFile) {
         Object.assign(fields, await files.uploadProductFile(upFile));
         await files.removeProductFile(current.file_path); // replace, don't pile up old versions
