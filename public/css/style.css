@@ -46,7 +46,7 @@ p.lead{ color:var(--steel); font-size:clamp(15.5px, 1.6vw, 17px); line-height:1.
 .nav-links{ display:flex; gap:clamp(18px, 2.4vw, 34px); align-items:center; }
 .nav-link{ font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:var(--steel-lt); transition:color .2s; white-space:nowrap; }
 .nav-link:hover, .nav-link[aria-current]{ color:var(--white); }
-.nav-cta-mobile{ display:none; }
+.nav-links .nav-cta-mobile{ display:none; } /* the in-menu copy is only for phones */
 .nav-actions{ display:flex; align-items:center; gap:14px; }
 .lang-toggle{ display:flex; border:1px solid var(--line); border-radius:100px; overflow:hidden; font-family:var(--font-mono); font-size:11px; }
 .lang-toggle a{ padding:10px 14px; color:var(--steel-lt); letter-spacing:0.05em; transition:background .2s, color .2s; min-width:44px; text-align:center; }
@@ -255,7 +255,6 @@ html.lang-am .cta-band h2{ font-size:clamp(20px, 2.6vw, 26px); max-width:none; }
   .nav-links{ position:absolute; left:0; right:0; top:100%; background:var(--navy); border-bottom:1px solid var(--line); flex-direction:column; align-items:stretch; gap:0; padding:6px 0 22px; display:none; max-height:calc(100vh - 72px); max-height:calc(100dvh - 72px); overflow-y:auto; box-shadow:0 24px 40px -20px rgba(0,0,0,0.6); }
   .site-header.open .nav-links{ display:flex; }
   .nav-link{ padding:16px max(var(--gutter), env(safe-area-inset-left)); font-size:13px; border-bottom:1px solid var(--line); }
-  .nav-cta-mobile{ display:inline-flex; margin:20px max(var(--gutter), env(safe-area-inset-left)) 0; }
 }
 
 /* ---------- Tablet portrait ---------- */
@@ -283,6 +282,7 @@ html.lang-am .cta-band h2{ font-size:clamp(20px, 2.6vw, 26px); max-width:none; }
   .nav-actions{ gap:8px; }
   .lang-toggle a{ padding:10px 10px; min-width:40px; }
   .nav-quote{ display:none; }
+  .nav-links .nav-cta-mobile{ display:inline-flex; margin:20px max(var(--gutter), env(safe-area-inset-left)) 0; }
   .svc-grid, .prod-grid, .why-grid, .proj-grid, .foot-grid{ grid-template-columns:1fr; }
   .svc-card{ padding:28px 22px; min-height:0; }
   .hero-ctas .btn{ flex:1 1 100%; }
