@@ -18,6 +18,10 @@
     <% if (error) { %><div class="error"><%= error %></div><% } %>
     <% if (setupNeeded) { %><div class="error">The products table does not exist yet. Run <strong>migrations/002_products_and_seo.sql</strong> in the Supabase SQL Editor, create the private <strong>products</strong> storage bucket, then reload this page.</div><% } %>
 
+    <% if (storage && storage.ok && !storage.isPublic) { %><div class="notice">File storage is ready and private.</div><% } %>
+    <% if (storage && storage.ok && storage.isPublic) { %><div class="error">The <strong>products</strong> storage bucket is PUBLIC, so anyone with a file link could open it without paying. In Supabase → Storage → products → Edit bucket, turn off "Public bucket".</div><% } %>
+    <% if (storage && !storage.ok) { %><div class="error">File storage problem: <%= storage.message %></div><% } %>
+
     <% products.forEach(function(p){ %>
     <div class="card">
       <form method="POST" action="/admin/products/<%= p.id %>/update" enctype="multipart/form-data">
@@ -47,12 +51,12 @@
           <div>
             <label>Cover image (optional)</label>
             <% if (p.image) { %><img src="<%= p.image %>" class="thumb" style="margin-bottom:8px;" alt=""><% } %>
-            <input type="file" name="image_file" accept="image/*">
+            <%- include('_dropzone', { name: 'image_file', kind: 'image', maxmb: 5, hint: 'PNG, JPG, WEBP or GIF, up to 5 MB', required: false }) %>
           </div>
         </div>
         <label>Downloadable file</label>
         <p class="hint" style="margin-top:0;">Current: <strong><%= p.file_name || 'none uploaded' %></strong> <% if (p.file_type) { %>(<%= p.file_type %>)<% } %>. Choose a new file only if you want to replace it.</p>
-        <input type="file" name="product_file" accept=".xlsx,.xls,.xlsm,.docx,.doc,.pdf,.zip">
+        <%- include('_dropzone', { name: 'product_file', kind: 'file', maxmb: 15, hint: 'Excel, Word, PDF or ZIP, up to 15 MB', required: false }) %>
         <label style="display:flex; align-items:center; gap:8px; text-transform:none; font-weight:400;">
           <input type="checkbox" name="active" style="width:auto; margin:0;" <%= p.active ? 'checked' : '' %>> Visible on site
         </label>
@@ -92,13 +96,39 @@
           <div><label>Currency</label><input type="text" name="currency" value="ETB"></div>
         </div>
         <label>Downloadable file (Excel, Word, PDF or ZIP, max 15 MB)</label>
-        <input type="file" name="product_file" accept=".xlsx,.xls,.xlsm,.docx,.doc,.pdf,.zip" required>
+        <%- include('_dropzone', { name: 'product_file', kind: 'file', maxmb: 15, hint: 'Excel, Word, PDF or ZIP, up to 15 MB', required: true }) %>
         <label>Cover image (optional)</label>
-        <input type="file" name="image_file" accept="image/*">
+        <%- include('_dropzone', { name: 'image_file', kind: 'image', maxmb: 5, hint: 'PNG, JPG, WEBP or GIF, up to 5 MB', required: false }) %>
         <button type="submit" class="btn btn-primary" style="margin-top:10px;">Add Product</button>
       </form>
     </div>
   </div>
 </div>
+<script>
+(function(){
+  var OK = ['xlsx','xls','xlsm','docx','doc','pdf','zip'];
+  function fmt(n){ return n >= 1048576 ? (n/1048576).toFixed(1)+' MB' : Math.max(1,Math.round(n/1024))+' KB'; }
+  document.querySelectorAll('.dz').forEach(function(dz){
+    var input = dz.querySelector('.dz-input'), chosen = dz.querySelector('.dz-chosen'),
+        err = dz.querySelector('.dz-error'), prev = dz.querySelector('.dz-preview');
+    var kind = dz.getAttribute('data-kind'), maxMb = parseFloat(dz.getAttribute('data-max')) || 15;
+    ['dragenter','dragover'].forEach(function(ev){ dz.addEventListener(ev, function(){ dz.classList.add('over'); }); });
+    ['dragleave','drop'].forEach(function(ev){ dz.addEventListener(ev, function(){ dz.classList.remove('over'); }); });
+    input.addEventListener('change', function(){
+      err.hidden = true; chosen.hidden = true; prev.hidden = true; dz.classList.remove('has-file');
+      var f = input.files && input.files[0];
+      if(!f) return;
+      var ext = (f.name.split('.').pop() || '').toLowerCase();
+      var problem = '';
+      if(f.size > maxMb*1048576) problem = 'This file is '+fmt(f.size)+'. The limit is '+maxMb+' MB.';
+      else if(kind === 'file' && OK.indexOf(ext) === -1) problem = 'Use an Excel, Word, PDF or ZIP file (this one is ".'+ext+'").';
+      else if(kind === 'image' && f.type && f.type.indexOf('image/') !== 0) problem = 'Please choose an image file.';
+      if(problem){ err.textContent = problem; err.hidden = false; input.value = ''; return; }
+      chosen.textContent = '\u2713 ' + f.name + '  (' + fmt(f.size) + ')'; chosen.hidden = false; dz.classList.add('has-file');
+      if(kind === 'image' && window.URL){ prev.src = URL.createObjectURL(f); prev.hidden = false; }
+    });
+  });
+})();
+</script>
 </body>
 </html>

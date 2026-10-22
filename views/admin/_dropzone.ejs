@@ -1,0 +1,9 @@
+<label class="dz" data-kind="<%= kind %>" data-max="<%= maxmb %>">
+  <input type="file" class="dz-input" name="<%= name %>"<%- kind === 'image' ? ' accept="image/*"' : '' %><%- required ? ' required' : '' %>>
+  <span class="dz-icon" aria-hidden="true">&#8679;</span>
+  <span class="dz-text"><strong><%= kind === 'image' ? 'Choose an image' : 'Choose a file' %></strong> or drag it here</span>
+  <span class="dz-hint"><%= hint %></span>
+  <img class="dz-preview" alt="" hidden>
+  <span class="dz-chosen" hidden></span>
+  <span class="dz-error" hidden></span>
+</label>
