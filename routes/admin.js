@@ -199,6 +199,17 @@ router.post('/gallery/:id/delete', async (req, res, next) => {
 });
 
 // ---------- Products (downloadable files sold through Chapa) ----------
+// Turns a raw storage/database error into something an admin can act on.
+function explainError(err) {
+  const m = String((err && err.message) || err || 'Unknown error');
+  if (/bucket not found/i.test(m)) return 'Upload failed: the storage bucket does not exist. Run migrations/002_products_and_seo.sql in Supabase (or create a private bucket named "products").';
+  if (/row-level security|not authorized|unauthorized|invalid (jwt|api key)/i.test(m)) return 'Upload failed: Supabase rejected the request. Check that SUPABASE_SERVICE_ROLE_KEY is the service role key (not the anon key).';
+  if (/relation .* does not exist|could not find the table|schema cache/i.test(m)) return 'The products table does not exist yet. Run migrations/002_products_and_seo.sql in the Supabase SQL Editor.';
+  if (/duplicate key|already exists/i.test(m)) return 'A product with that web address already exists. Change the slug and try again.';
+  if (/file too large|LIMIT_FILE_SIZE/i.test(m)) return 'That file is too large (limit 15 MB for files, 5 MB for images).';
+  return 'Save failed: ' + m;
+}
+
 function checkProductFile(f) {
   if (!f) return '';
   if (files.isAllowedUpload(f)) return '';
@@ -220,14 +231,15 @@ router.get('/products', async (req, res, next) => {
     let products = [];
     let setupNeeded = false;
     try { products = await store.listProducts(); } catch (e) { setupNeeded = true; }
-    res.send(render('admin/products', { products, categories: CATEGORIES, setupNeeded, error: req.query.error || '', saved: req.query.saved === '1' }));
+    const storage = await files.checkBucket();
+    res.send(render('admin/products', { products, categories: CATEGORIES, setupNeeded, storage, error: req.query.error || '', saved: req.query.saved === '1' }));
   } catch (err) { next(err); }
 });
 
 router.post('/products', (req, res, next) => {
   productUpload(req, res, async (uploadErr) => {
     try {
-      if (uploadErr) return res.redirect('/admin/products?error=' + encodeURIComponent(uploadErr.message));
+      if (uploadErr) return res.redirect('/admin/products?error=' + encodeURIComponent(explainError(uploadErr)));
       const f = productFields(req.body);
       if (!f.title_en) return res.redirect('/admin/products?error=' + encodeURIComponent('Please enter an English title.'));
       const upFile = req.files && req.files.product_file && req.files.product_file[0];
@@ -245,14 +257,14 @@ router.post('/products', (req, res, next) => {
       const image = upImage ? await uploadImage(upImage, 'products') : '';
       await store.createProduct({ ...f, slug, ...stored, image });
       res.redirect('/admin/products?saved=1');
-    } catch (err) { next(err); }
+    } catch (err) { console.error('product create failed:', err); res.redirect('/admin/products?error=' + encodeURIComponent(explainError(err))); }
   });
 });
 
 router.post('/products/:id/update', (req, res, next) => {
   productUpload(req, res, async (uploadErr) => {
     try {
-      if (uploadErr) return res.redirect('/admin/products?error=' + encodeURIComponent(uploadErr.message));
+      if (uploadErr) return res.redirect('/admin/products?error=' + encodeURIComponent(explainError(uploadErr)));
       const id = Number(req.params.id);
       const current = await store.getProduct(id);
       if (!current) return res.redirect('/admin/products');
@@ -273,7 +285,7 @@ router.post('/products/:id/update', (req, res, next) => {
       if (upImage) fields.image = await uploadImage(upImage, 'products');
       await store.updateProduct(id, fields);
       res.redirect('/admin/products?saved=1');
-    } catch (err) { next(err); }
+    } catch (err) { console.error('product update failed:', err); res.redirect('/admin/products?error=' + encodeURIComponent(explainError(err))); }
   });
 });
 
