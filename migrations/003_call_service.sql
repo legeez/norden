@@ -73,3 +73,10 @@ select * from (values
    'ለፕሮጀክትዎ የዕቃ፣ የሰው ጉልበት እና የማሽን ወቅታዊ ዋጋ እና የወጪ ምክር።', 3)
 ) as v(title_en, title_am, desc_en, desc_am, order_num)
 where not exists (select 1 from call_categories);
+
+-- 4. Payment settings (Chapa secret key entered in Admin -> Payments). Only the server can read this table.
+create table if not exists payment_settings (
+  key   text primary key,
+  value text not null default ''
+);
+alter table payment_settings enable row level security;

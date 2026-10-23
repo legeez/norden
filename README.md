@@ -51,7 +51,7 @@ This runs `build:templates` automatically (bundles every `.ejs` file into `worke
 ## 3. Get your Chapa account & API key
 
 1. Sign up at **https://dashboard.chapa.co** and complete merchant verification (start this early — it can take a bit).
-2. **Settings → API Keys** → copy the **Test Secret Key** (`CHASECK_TEST-...`) into `.env` as `CHAPA_SECRET_KEY`. Switch to the **Live** key once you're ready to accept real payments.
+2. **Settings → API Keys** → copy the **Test Secret Key** (`CHASECK_TEST-...`). The easiest way is to paste it in **Admin → Payments** (use *Save and test*); a key saved there is used first. Alternatively set it as `CHAPA_SECRET_KEY` in `.env` or as a Cloudflare secret. Switch to the **Live** key once you're ready to accept real payments.
 3. Docs: https://developer.chapa.co
 
 ---

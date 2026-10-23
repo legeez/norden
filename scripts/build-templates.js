@@ -62,6 +62,7 @@ const LOCALS_KEYS = {
   'checkout/call-result': ['lang', 'state', 'booking', 'live', 'slotLabel'],
   'call': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'cfg', 'days', 'cats', 'catsJson', 'errorMsg', 'values', 'seo'],
   'admin/calls': ['bookings', 'ready', 'showAll', 'live', 'saved'],
+  'admin/payments': ['info', 'urls', 'saved', 'msg', 'ok'],
   'admin/call-types': ['types', 'ready', 'saved', 'currency', 'defaults'],
   'admin/call-settings': ['s', 'days', 'ready', 'saved', 'msg', 'tg', 'mail']
 };

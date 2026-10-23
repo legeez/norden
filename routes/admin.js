@@ -9,6 +9,7 @@ const { CATEGORIES } = require('../lib/catalog');
 const { requireAdmin } = require('../lib/auth');
 const { render } = require('../lib/render');
 const calls = require('../lib/calls');
+const chapa = require('../lib/chapa');
 const notify = require('../lib/notify');
 
 const upload = multer({
@@ -347,6 +348,46 @@ router.post('/calls/:id/status', async (req, res, next) => {
     await calls.updateCallStatus(Number(req.params.id), status, String(req.body.admin_note || '').slice(0, 300));
     res.redirect('/admin/calls?saved=1');
   } catch (err) { next(err); }
+});
+
+// ---------- Payments (Chapa) ----------
+async function renderPayments(req, res, { saved, msg, ok }) {
+  const { key, source } = await chapa.getSecretKey();
+  const base = (process.env.APP_BASE_URL && !/localhost|127\.0\.0\.1/i.test(process.env.APP_BASE_URL))
+    ? process.env.APP_BASE_URL.replace(/\/+$/, '') : `https://${req.get('host')}`;
+  res.send(render('admin/payments', {
+    info: { ...chapa.describeKey(key), source },
+    urls: { orders: base + '/chapa/webhook', calls: base + '/chapa/call-webhook' },
+    saved: !!saved, msg: msg || '', ok: ok !== false
+  }));
+}
+
+router.get('/payments', async (req, res, next) => {
+  try { await renderPayments(req, res, { saved: req.query.saved === '1' }); } catch (err) { next(err); }
+});
+
+router.post('/payments', async (req, res, next) => {
+  try {
+    const key = String(req.body.chapa_secret_key || '').trim();
+    if (!key) return renderPayments(req, res, { msg: 'Paste your Chapa secret key first.', ok: false });
+    if (/\s/.test(key) || key.length < 16) return renderPayments(req, res, { msg: 'That does not look like a Chapa secret key. Copy it again without spaces.', ok: false });
+    await chapa.saveSecretKey(key);
+    let msg = 'Chapa key saved.';
+    if (req.body.test === '1') { const t = await chapa.testConnection(); msg += ' ' + t.message; return renderPayments(req, res, { saved: true, msg, ok: t.ok }); }
+    if (!/^CHASECK/i.test(key)) return renderPayments(req, res, { saved: true, ok: false, msg: msg + ' Note: Chapa secret keys normally start with CHASECK. Please use Save and test to check it.' });
+    res.redirect('/admin/payments?saved=1');
+  } catch (err) { next(err); }
+});
+
+router.post('/payments/test', async (req, res, next) => {
+  try {
+    const t = await chapa.testConnection();
+    await renderPayments(req, res, { msg: t.message, ok: t.ok });
+  } catch (err) { next(err); }
+});
+
+router.post('/payments/remove', async (req, res, next) => {
+  try { await chapa.removeSecretKey(); res.redirect('/admin/payments?saved=1'); } catch (err) { next(err); }
 });
 
 // ---------- Call types (what the customer needs help with) ----------

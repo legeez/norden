@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payments — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'payments' }) %>
+  <div class="admin-main">
+    <h1>Payments (Chapa)</h1>
+    <p class="admin-sub">Connect your Chapa account. This one key is used for templates and for paid calls.</p>
+
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
+    <% if (msg) { %><div class="<%= ok ? 'notice' : 'error' %>"><%= msg %></div><% } %>
+
+    <div class="card">
+      <h2>Status</h2>
+      <% if (!info.set) { %>
+        <p style="margin:0;"><span class="badge badge-failed">No key</span> Payments will not work until you add your Chapa secret key below.</p>
+      <% } else { %>
+        <p style="margin:0 0 8px;"><span class="badge badge-<%= info.mode === 'live' ? 'paid' : 'pending' %>"><%= info.mode === 'live' ? 'LIVE mode' : info.mode === 'test' ? 'TEST mode' : 'Unknown key type' %></span>
+          Key: <code><%= info.masked %></code></p>
+        <p class="hint" style="margin:0;">
+          Source: <strong><%= info.source === 'admin' ? 'saved here in the admin panel' : 'server secret (CHAPA_SECRET_KEY)' %></strong>.
+          <% if (info.mode === 'test') { %> Test mode: no real money moves. Replace with your Live key when you are ready for real customers.<% } %>
+        </p>
+        <form method="POST" action="/admin/payments/test" style="margin-top:14px;">
+          <button type="submit" class="btn btn-outline">Test connection</button>
+        </form>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2><%= info.set ? 'Replace the secret key' : 'Add your secret key' %></h2>
+      <form method="POST" action="/admin/payments" autocomplete="off">
+        <label>Chapa Secret Key</label>
+        <input type="password" name="chapa_secret_key" placeholder="CHASECK_TEST-... or CHASECK-..." autocomplete="new-password" spellcheck="false">
+        <p class="hint">In Chapa: dashboard.chapa.co &rarr; Settings &rarr; API Keys &rarr; copy the <strong>Secret Key</strong>. Use the Test key first, then the Live key. The saved key is never shown again here, only a hidden version.</p>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Save key</button>
+          <button type="submit" name="test" value="1" class="btn btn-outline">Save and test</button>
+        </div>
+      </form>
+      <% if (info.set && info.source === 'admin') { %>
+      <form method="POST" action="/admin/payments/remove" onsubmit="return confirm('Remove the saved key? Payments will stop unless a server secret is set.');" style="margin-top:12px;">
+        <button type="submit" class="btn btn-danger">Remove saved key</button>
+      </form>
+      <% } %>
+    </div>
+
+    <div class="card">
+      <h2>Chapa dashboard setup</h2>
+      <p class="hint" style="margin-top:0;">In Chapa, open <strong>Settings &rarr; Webhooks</strong> and paste these addresses. Payments are still double-checked with Chapa on our side, so nothing is trusted from the webhook alone.</p>
+      <label>Webhook for template purchases</label>
+      <input type="text" readonly value="<%= urls.orders %>" onclick="this.select()">
+      <label>Webhook for paid calls</label>
+      <input type="text" readonly value="<%= urls.calls %>" onclick="this.select()">
+      <p class="hint">Customers return to your site automatically after paying, so no return address is needed. Your Chapa account must be verified (business details approved) before the Live key can take real payments.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
