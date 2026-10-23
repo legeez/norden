@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calls — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'calls' }) %>
+  <div class="admin-main">
+    <h1>Calls</h1>
+    <p class="admin-sub">Paid live and scheduled calls. Use the switch to go online or offline for live calls.</p>
+
+    <% if (!ready) { %><div class="error">The call tables do not exist yet. Run <code>migrations/003_call_service.sql</code> in the Supabase SQL Editor.</div><% } %>
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
+
+    <div class="card live-switch <%= live ? 'is-on' : '' %>">
+      <div>
+        <h2 style="margin:0 0 4px;">Live calls: <%= live ? 'ONLINE (customers can pay and call you now)' : 'OFFLINE (customers can only book scheduled calls)' %></h2>
+        <p class="hint" style="margin:0;">Switch this on when you are ready to pick up calls.</p>
+      </div>
+      <form method="POST" action="/admin/calls/live-toggle">
+        <button type="submit" class="btn <%= live ? 'btn-danger' : 'btn-primary' %>"><%= live ? 'Go offline' : 'Go online' %></button>
+      </form>
+    </div>
+
+    <div class="tabs">
+      <a href="/admin/calls" class="<%= showAll ? '' : 'active' %>">Paid calls</a>
+      <a href="/admin/calls?show=all" class="<%= showAll ? 'active' : '' %>">All attempts (incl. unpaid)</a>
+      <a href="/admin/call-settings">Call settings &rarr;</a>
+    </div>
+
+    <div class="card">
+      <% if (bookings.length === 0) { %>
+        <p class="hint" style="margin-top:0;">No calls yet.</p>
+      <% } else { %>
+      <table>
+        <tr><th>Booked</th><th>Customer</th><th>When</th><th>Payment</th><th>Call status</th></tr>
+        <% bookings.forEach(function(b){ %>
+        <tr>
+          <td><%= new Date(b.created_at).toLocaleString() %></td>
+          <td>
+            <strong><%= b.customer_name %></strong><br>
+            <span class="hint" style="margin:0;"><%= b.customer_phone %> · <%= b.customer_email %></span><br>
+            <a href="<%= b.tel %>" class="hint" style="margin:0; text-decoration:underline;">Call</a>
+            <% if (b.wa) { %> · <a href="<%= b.wa %>" target="_blank" rel="noopener" class="hint" style="margin:0; text-decoration:underline;">WhatsApp</a><% } %>
+            <% if (b.topic) { %><br><span class="hint" style="margin:6px 0 0;">“<%= b.topic %>”</span><% } %>
+          </td>
+          <td>
+            <% if (b.category_title) { %><strong><%= b.category_title %></strong><br><% } %>
+            <span class="badge badge-<%= b.call_type === 'live' ? 'pending' : 'paid' %>"><%= b.call_type %></span><br>
+            <% if (b.call_type === 'scheduled') { %><strong><%= b.when %></strong><br><% } %>
+            <span class="hint" style="margin:0;"><%= b.channel === 'whatsapp' ? 'WhatsApp' : 'Phone' %> · <%= b.call_type === 'scheduled' ? 'you call them' : 'they call you' %></span>
+          </td>
+          <td><span class="badge badge-<%= b.status %>"><%= b.status %></span><br><span class="hint" style="margin:0;"><%= Number(b.amount).toLocaleString('en-US') %> <%= b.currency %></span></td>
+          <td>
+            <form method="POST" action="/admin/calls/<%= b.id %>/status">
+              <select name="call_status" style="margin-bottom:8px;">
+                <% ['new','confirmed','done','cancelled'].forEach(function(st){ %><option value="<%= st %>" <%= b.call_status === st ? 'selected' : '' %>><%= st %></option><% }) %>
+              </select>
+              <input type="text" name="admin_note" value="<%= b.admin_note %>" placeholder="Private note" style="margin-bottom:8px;">
+              <button type="submit" class="btn btn-outline">Save</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </table>
+      <p class="hint" style="margin:14px 0 0;">Cancelling a scheduled call frees its time slot. Refunds are done in your Chapa dashboard.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
+</body>
+</html>

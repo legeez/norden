@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Call Types — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'call-types' }) %>
+  <div class="admin-main">
+    <h1>Call Types</h1>
+    <p class="admin-sub">The topics customers choose from when they book a call (for example: process and licensing, technical questions, material and labor costs). Leave a price empty to use the default price from Call Settings.</p>
+
+    <% if (!ready) { %><div class="error">The call tables do not exist yet. Run <code>migrations/003_call_service.sql</code> in the Supabase SQL Editor.</div><% } %>
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
+
+    <% types.forEach(function(t){ %>
+    <div class="card">
+      <form method="POST" action="/admin/call-types/<%= t.id %>/update">
+        <div class="lang-col">
+          <div><label>Title (English)</label><input type="text" name="title_en" value="<%= t.title_en %>" required></div>
+          <div><label>Title (Amharic)</label><input type="text" name="title_am" value="<%= t.title_am %>"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Short description (English)</label><textarea name="desc_en"><%= t.desc_en %></textarea></div>
+          <div><label>Short description (Amharic)</label><textarea name="desc_am"><%= t.desc_am %></textarea></div>
+        </div>
+        <div class="row3">
+          <div><label>Live call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="live_price" value="<%= t.live_price === null ? '' : t.live_price %>" placeholder="default <%= defaults.live_price %>"></div>
+          <div><label>Scheduled call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="scheduled_price" value="<%= t.scheduled_price === null ? '' : t.scheduled_price %>" placeholder="default <%= defaults.scheduled_price %>"></div>
+          <div><label>Live call length (minutes)</label><input type="number" min="1" max="120" name="live_minutes" value="<%= t.live_minutes === null ? '' : t.live_minutes %>" placeholder="default <%= defaults.live_minutes %>"></div>
+        </div>
+        <div class="row2">
+          <div><label>Display order</label><input type="number" name="order" value="<%= t.order %>"></div>
+          <div></div>
+        </div>
+        <label class="check"><input type="checkbox" name="active" <%= t.active ? 'checked' : '' %>> Visible on the Book a Call page</label>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </form>
+      <form method="POST" action="/admin/call-types/<%= t.id %>/delete" style="display:inline;" onsubmit="return confirm('Delete this call type? Past bookings keep its name.');">
+        <button type="submit" class="btn btn-danger" style="margin-top:10px;">Delete</button>
+      </form>
+    </div>
+    <% }) %>
+
+    <div class="card">
+      <h2>Add a Call Type</h2>
+      <form method="POST" action="/admin/call-types">
+        <div class="lang-col">
+          <div><label>Title (English)</label><input type="text" name="title_en" required></div>
+          <div><label>Title (Amharic)</label><input type="text" name="title_am"></div>
+        </div>
+        <div class="lang-col">
+          <div><label>Short description (English)</label><textarea name="desc_en"></textarea></div>
+          <div><label>Short description (Amharic)</label><textarea name="desc_am"></textarea></div>
+        </div>
+        <div class="row3">
+          <div><label>Live call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="live_price" placeholder="default <%= defaults.live_price %>"></div>
+          <div><label>Scheduled call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="scheduled_price" placeholder="default <%= defaults.scheduled_price %>"></div>
+          <div><label>Live call length (minutes)</label><input type="number" min="1" max="120" name="live_minutes" placeholder="default <%= defaults.live_minutes %>"></div>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Call Type</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

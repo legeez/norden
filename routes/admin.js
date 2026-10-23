@@ -8,6 +8,8 @@ const seo = require('../lib/seo');
 const { CATEGORIES } = require('../lib/catalog');
 const { requireAdmin } = require('../lib/auth');
 const { render } = require('../lib/render');
+const calls = require('../lib/calls');
+const notify = require('../lib/notify');
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -59,7 +61,9 @@ router.use(requireAdmin); // everything below requires login
 router.get('/', async (req, res, next) => {
   try {
     const stats = await store.getStats();
-    res.send(render('admin/dashboard', stats));
+    const cs = await calls.getSettingsSafe();
+    const newCalls = cs.ready && calls.flag(cs.s.notify_admin) ? await calls.countNewSafe() : 0;
+    res.send(render('admin/dashboard', { ...stats, newCalls }));
   } catch (err) { next(err); }
 });
 
@@ -304,6 +308,128 @@ router.get('/orders', async (req, res, next) => {
   try {
     const orders = await store.listOrders();
     res.send(render('admin/orders', { orders }));
+  } catch (err) { next(err); }
+});
+
+// ---------- Calls (live + scheduled) ----------
+router.get('/calls', async (req, res, next) => {
+  try {
+    const showAll = req.query.show === 'all';
+    const cs = await calls.getSettingsSafe();
+    let bookings = [];
+    let ready = cs.ready;
+    if (ready) {
+      try { bookings = await calls.listBookings({ paidOnly: !showAll }); } catch (e) { ready = false; }
+    }
+    bookings = bookings.map(b => ({
+      ...b,
+      tel: calls.telHref(b.customer_phone) || ('tel:' + b.customer_phone),
+      wa: calls.waHref(b.customer_phone, ''),
+      when: b.slot_start ? calls.formatSlot(b.slot_start, 'en') : ''
+    }));
+    res.send(render('admin/calls', {
+      bookings, ready, showAll, live: calls.flag(cs.s.live_enabled), saved: req.query.saved === '1'
+    }));
+  } catch (err) { next(err); }
+});
+
+router.post('/calls/live-toggle', async (req, res, next) => {
+  try {
+    const cs = await calls.getSettingsSafe();
+    await calls.saveSettings({ live_enabled: calls.flag(cs.s.live_enabled) ? 'off' : 'on' });
+    res.redirect('/admin/calls?saved=1');
+  } catch (err) { next(err); }
+});
+
+router.post('/calls/:id/status', async (req, res, next) => {
+  try {
+    const status = ['new', 'confirmed', 'done', 'cancelled'].includes(req.body.call_status) ? req.body.call_status : 'new';
+    await calls.updateCallStatus(Number(req.params.id), status, String(req.body.admin_note || '').slice(0, 300));
+    res.redirect('/admin/calls?saved=1');
+  } catch (err) { next(err); }
+});
+
+// ---------- Call types (what the customer needs help with) ----------
+router.get('/call-types', async (req, res, next) => {
+  try {
+    const cs = await calls.getSettingsSafe();
+    let types = [], ready = cs.ready;
+    if (ready) { try { types = await calls.listCategories(); } catch (e) { ready = false; } }
+    res.send(render('admin/call-types', { types, ready, saved: req.query.saved === '1', currency: cs.s.currency || 'ETB', defaults: cs.s }));
+  } catch (err) { next(err); }
+});
+
+router.post('/call-types', async (req, res, next) => {
+  try {
+    if (!String(req.body.title_en || '').trim()) return res.redirect('/admin/call-types');
+    await calls.createCategory(req.body);
+    res.redirect('/admin/call-types?saved=1');
+  } catch (err) { next(err); }
+});
+
+router.post('/call-types/:id/update', async (req, res, next) => {
+  try {
+    await calls.updateCategory(Number(req.params.id), { ...req.body, active: req.body.active === 'on', order: Number(req.body.order) || undefined });
+    res.redirect('/admin/call-types?saved=1');
+  } catch (err) { next(err); }
+});
+
+router.post('/call-types/:id/delete', async (req, res, next) => {
+  try {
+    await calls.deleteCategory(Number(req.params.id));
+    res.redirect('/admin/call-types');
+  } catch (err) { next(err); }
+});
+
+function callSettingsFromBody(body) {
+  const out = {};
+  const sw = (k) => { out[k] = body[k] === 'on' ? 'on' : 'off'; };
+  ['live_enabled', 'scheduled_enabled', 'channel_phone', 'channel_whatsapp', 'notify_admin', 'notify_telegram', 'notify_email'].forEach(sw);
+  const money = (k) => { const n = Number(body[k]); out[k] = Number.isFinite(n) && n >= 0 ? String(n) : calls.DEFAULTS[k]; };
+  ['live_price', 'scheduled_price'].forEach(money);
+  const int = (k, min, max) => { out[k] = String(calls.clampInt(body[k], min, max, Number(calls.DEFAULTS[k]))); };
+  int('live_minutes', 1, 120); int('live_window_min', 5, 1440); int('slot_minutes', 10, 240);
+  int('min_notice_hours', 0, 168); int('max_days_ahead', 1, 60);
+  const text = (k, max) => { out[k] = String(body[k] || '').trim().slice(0, max); };
+  text('call_phone', 40); text('call_whatsapp', 40); text('telegram_chat_id', 40); text('notify_email_to', 160);
+  out.currency = (String(body.currency || 'ETB').trim().toUpperCase().slice(0, 5)) || 'ETB';
+  calls.DAYS.forEach(d => {
+    out[d.key + '_on'] = body[d.key + '_on'] === 'on' ? 'on' : 'off';
+    ['start', 'end'].forEach(w => {
+      const v = String(body[d.key + '_' + w] || '').trim();
+      out[d.key + '_' + w] = calls.parseHM(v) !== null ? v : calls.DEFAULTS[d.key + '_' + w];
+    });
+  });
+  return out;
+}
+
+async function renderCallSettings(res, { saved, msg }) {
+  const cs = await calls.getSettingsSafe();
+  res.send(render('admin/call-settings', {
+    s: cs.s, days: calls.DAYS, ready: cs.ready, saved: !!saved, msg: msg || '',
+    tg: !!process.env.TELEGRAM_BOT_TOKEN, mail: !!process.env.RESEND_API_KEY
+  }));
+}
+
+router.get('/call-settings', async (req, res, next) => {
+  try { await renderCallSettings(res, { saved: req.query.saved === '1' }); } catch (err) { next(err); }
+});
+
+router.post('/call-settings', async (req, res, next) => {
+  try {
+    await calls.saveSettings(callSettingsFromBody(req.body));
+    res.redirect('/admin/call-settings?saved=1');
+  } catch (err) { next(err); }
+});
+
+router.post('/call-settings/test', async (req, res, next) => {
+  try {
+    const map = callSettingsFromBody(req.body);
+    await calls.saveSettings(map);
+    const s = { ...calls.DEFAULTS, ...map };
+    const r = await notify.notifyAdmin(s, 'Norden test notification', 'This is a test from Admin > Call Settings. If you can read this, notifications work.');
+    const line = (name, v) => `${name}: ${v === 'off' ? 'switched off' : v}`;
+    await renderCallSettings(res, { saved: true, msg: line('Telegram', r.telegram) + '\n' + line('Email', r.email) });
   } catch (err) { next(err); }
 });
 

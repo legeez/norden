@@ -48,7 +48,7 @@ const LOCALS_KEYS = {
   'partials/_productcard': ['lang', 'prefix', 'p'],
   'admin/_sidebar': ['active'],
   'admin/login': ['error'],
-  'admin/dashboard': ['serviceCount', 'orderCount', 'paidCount', 'revenue', 'recentOrders'],
+  'admin/dashboard': ['serviceCount', 'orderCount', 'paidCount', 'revenue', 'recentOrders', 'newCalls'],
   'admin/content': ['content', 'saved'],
   'admin/services': ['services'],
   'admin/products': ['products', 'categories', 'setupNeeded', 'error', 'saved', 'storage'],
@@ -58,7 +58,12 @@ const LOCALS_KEYS = {
   'admin/orders': ['orders'],
   'checkout/form': ['service', 'error'],
   'checkout/success': ['order', 'downloadUrl'],
-  'checkout/failed': ['message', 'order']
+  'checkout/failed': ['message', 'order'],
+  'checkout/call-result': ['lang', 'state', 'booking', 'live', 'slotLabel'],
+  'call': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'cfg', 'days', 'cats', 'catsJson', 'errorMsg', 'values', 'seo'],
+  'admin/calls': ['bookings', 'ready', 'showAll', 'live', 'saved'],
+  'admin/call-types': ['types', 'ready', 'saved', 'currency', 'defaults'],
+  'admin/call-settings': ['s', 'days', 'ready', 'saved', 'msg', 'tg', 'mail']
 };
 
 const WITH_PATTERN = /with\s*\(\s*locals\s*\|\|\s*\{\}\s*\)\s*\{/;

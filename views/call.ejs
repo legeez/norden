@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
+      <span aria-current="page"><span data-en>Book a call</span><span data-am>ጥሪ ያስይዙ</span></span>
+    </nav>
+    <h1 data-en>Talk to an Expert</h1>
+    <h1 data-am>ከባለሙያ ጋር ይወያዩ</h1>
+    <p class="lead" data-en>Quick advice on BOQ, cost estimation, bids and contractor payments, by phone or WhatsApp. Choose a live call now, or schedule one.</p>
+    <p class="lead" data-am>ስለ BOQ፣ የወጪ ግምት፣ ጨረታ እና የተቋራጭ ክፍያ ፈጣን ምክር በስልክ ወይም በዋትስአፕ ያግኙ። አሁን ቀጥታ ጥሪ ይምረጡ፣ ወይም ቀጠሮ ይያዙ።</p>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+  <% if (!cfg.live.on && !cfg.scheduled.on) { %>
+    <div class="note-box" style="margin-top:0;">
+      <span data-en>Call booking is not open right now. Please call or email us from the contact section and we will help you.</span>
+      <span data-am>ጥሪ ማስያዝ አሁን ክፍት አይደለም። እባክዎ ከመገኛ ክፍሉ በስልክ ወይም በኢሜይል ያግኙን።</span>
+    </div>
+    <p style="margin-top:20px;"><a class="btn btn-primary" href="<%= home %>#contact"><span data-en>Contact us</span><span data-am>ያግኙን</span></a></p>
+  <% } else { %>
+    <form class="call-form" id="call-form" method="POST" action="/call/book" novalidate>
+      <input type="hidden" name="lang" value="<%= lang %>">
+      <input type="text" name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <% if (errorMsg) { %>
+      <div class="call-error" role="alert"><span data-en><%= errorMsg.en %></span><span data-am><%= errorMsg.am %></span></div>
+      <% } %>
+
+      <% if (cats.length) { %>
+      <h2 class="call-h"><span data-en>What do you need help with?</span><span data-am>በምን ጉዳይ እርዳታ ይፈልጋሉ?</span></h2>
+      <div class="call-cats" role="radiogroup">
+        <% cats.forEach(function(c){ %>
+        <label class="call-cat">
+          <input type="radio" name="category_id" value="<%= c.id %>" <%= String(values.category) === String(c.id) || (cats.length === 1) ? 'checked' : '' %>>
+          <span class="box">
+            <strong class="t" data-en><%= c.title_en %></strong><strong class="t" data-am><%= c.title_am %></strong>
+            <% if (c.desc_en) { %><span class="d" data-en><%= c.desc_en %></span><span class="d" data-am><%= c.desc_am %></span><% } %>
+          </span>
+        </label>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <h2 class="call-h"><span data-en>How would you like to talk?</span><span data-am>እንዴት ማውራት ይፈልጋሉ?</span></h2>
+      <div class="call-types">
+        <label class="call-type <%= cfg.live.on ? '' : 'disabled' %>">
+          <input type="radio" name="call_type" value="live" data-price="<%= cfg.live.price %>" data-min="<%= cfg.live.minutes %>" <%= cfg.live.on ? '' : 'disabled' %> <%= (values.type === 'live' || (!values.type && cfg.live.on)) && cfg.live.on ? 'checked' : '' %>>
+          <span class="box">
+            <span class="status <%= cfg.live.on ? 'on' : 'off' %>">
+              <% if (cfg.live.on) { %><span data-en>Available now</span><span data-am>አሁን ክፍት ነው</span><% } else { %><span data-en>Offline right now</span><span data-am>አሁን አይገኝም</span><% } %>
+            </span>
+            <strong class="t"><span data-en>Live call</span><span data-am>ቀጥታ ጥሪ</span></strong>
+            <span class="d"><span data-en>Quick and short, about <span class="js-live-min"><%= cfg.live.minutes %></span> minutes. Pay, then call us straight away.</span><span data-am>ፈጣን እና አጭር፣ ወደ <span class="js-live-min"><%= cfg.live.minutes %></span> ደቂቃ። ይክፈሉ፣ ከዚያ ወዲያውኑ ይደውሉልን።</span></span>
+            <span class="p js-price-live"><%= cfg.live.price.toLocaleString('en-US') %> <%= cfg.currency %></span>
+          </span>
+        </label>
+        <label class="call-type <%= cfg.scheduled.on ? '' : 'disabled' %>">
+          <input type="radio" name="call_type" value="scheduled" data-price="<%= cfg.scheduled.price %>" data-min="<%= cfg.scheduled.minutes %>" <%= cfg.scheduled.on ? '' : 'disabled' %> <%= (values.type === 'scheduled' || (!values.type && !cfg.live.on)) && cfg.scheduled.on ? 'checked' : '' %>>
+          <span class="box">
+            <span class="status <%= cfg.scheduled.on ? 'on' : 'off' %>">
+              <% if (cfg.scheduled.on) { %><span data-en>Pick a time</span><span data-am>ሰዓት ይምረጡ</span><% } else { %><span data-en>No open times</span><span data-am>ክፍት ሰዓት የለም</span><% } %>
+            </span>
+            <strong class="t"><span data-en>Scheduled call</span><span data-am>ቀጠሮ ያለው ጥሪ</span></strong>
+            <span class="d"><span data-en>Choose a day and time that suits you, about <%= cfg.scheduled.minutes %> minutes. We call you.</span><span data-am>የሚመችዎትን ቀን እና ሰዓት ይምረጡ፣ ወደ <%= cfg.scheduled.minutes %> ደቂቃ። እኛ እንደውልልዎታለን።</span></span>
+            <span class="p js-price-scheduled"><%= cfg.scheduled.price.toLocaleString('en-US') %> <%= cfg.currency %></span>
+          </span>
+        </label>
+      </div>
+
+      <div id="sched-panel" hidden>
+        <h2 class="call-h"><span data-en>Pick a day and time</span><span data-am>ቀን እና ሰዓት ይምረጡ</span></h2>
+        <div class="field" style="max-width:320px;">
+          <label for="f-date"><span data-en>Day</span><span data-am>ቀን</span></label>
+          <select id="f-date" name="date">
+            <option value="" data-en>Select a day</option><option value="" data-am>ቀን ይምረጡ</option>
+            <% days.forEach(function(d){ %>
+            <option value="<%= d.date %>" data-en <%= values.date === d.date ? 'selected' : '' %>><%= d.en %></option>
+            <option value="<%= d.date %>" data-am <%= values.date === d.date ? 'selected' : '' %>><%= d.am %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div id="slots" class="call-slots" aria-live="polite"></div>
+        <p class="form-note" style="text-align:left;"><span data-en>Times use the standard clock (as on your phone), Addis Ababa time, not Ethiopian-hour counting.</span><span data-am>ሰዓቱ በአዲስ አበባ የዓለም አቀፍ አቆጣጠር (በስልክዎ እንደሚታየው) ነው፣ በኢትዮጵያ ሰዓት አቆጣጠር አይደለም።</span></p>
+      </div>
+
+      <h2 class="call-h"><span data-en>Your details</span><span data-am>የእርስዎ መረጃ</span></h2>
+      <div class="call-fields">
+        <div class="field"><label for="f-name"><span data-en>Full name</span><span data-am>ሙሉ ስም</span></label><input id="f-name" type="text" name="name" autocomplete="name" required value="<%= values.name || '' %>"></div>
+        <div class="field"><label for="f-email"><span data-en>Email</span><span data-am>ኢሜይል</span></label><input id="f-email" type="email" name="email" autocomplete="email" inputmode="email" required value="<%= values.email || '' %>"></div>
+        <div class="field"><label for="f-phone"><span data-en>Phone</span><span data-am>ስልክ</span></label><input id="f-phone" type="tel" name="phone" autocomplete="tel" inputmode="tel" required value="<%= values.phone || '' %>"></div>
+      </div>
+
+      <fieldset class="call-channel">
+        <legend id="lg-live"><span data-en>How will you call us?</span><span data-am>እንዴት ይደውሉልናል?</span></legend>
+        <legend id="lg-sched" hidden><span data-en>How should we call you?</span><span data-am>እንዴት እንደውልልዎ?</span></legend>
+        <% if (cfg.channels.includes('phone')) { %>
+        <label class="pill"><input type="radio" name="channel" value="phone" <%= (values.channel || 'phone') === 'phone' ? 'checked' : '' %>><span><span data-en>Phone call</span><span data-am>የስልክ ጥሪ</span></span></label>
+        <% } %>
+        <% if (cfg.channels.includes('whatsapp')) { %>
+        <label class="pill"><input type="radio" name="channel" value="whatsapp" <%= values.channel === 'whatsapp' || (!cfg.channels.includes('phone')) ? 'checked' : '' %>><span>WhatsApp</span></label>
+        <% } %>
+      </fieldset>
+
+      <div class="field" style="margin-top:18px;">
+        <label for="f-topic"><span data-en>What is the call about? (optional)</span><span data-am>ጥሪው ስለ ምን ነው? (አማራጭ)</span></label>
+        <textarea id="f-topic" name="topic" rows="3" maxlength="400"><%= values.topic || '' %></textarea>
+      </div>
+
+      <div class="call-total">
+        <div><span class="lbl"><span data-en>Total</span><span data-am>ጠቅላላ</span></span> <strong id="total"></strong></div>
+        <button type="submit" class="btn btn-primary"><span data-en>Pay with Chapa &amp; confirm</span><span data-am>በChapa ይክፈሉ እና ያረጋግጡ</span></button>
+      </div>
+      <p class="form-note" style="text-align:left;" id="note-live" hidden><span data-en>After payment, your Call buttons (phone / WhatsApp) appear right away.</span><span data-am>ከክፍያ በኋላ የመደወያ ቁልፎች (ስልክ / ዋትስአፕ) ወዲያውኑ ይታያሉ።</span></p>
+      <p class="form-note" style="text-align:left;" id="note-sched" hidden><span data-en>After payment, your time is confirmed and we call you at the chosen time.</span><span data-am>ከክፍያ በኋላ ቀጠሮዎ ይረጋገጣል፣ በተመረጠው ሰዓት እንደውልልዎታለን።</span></p>
+      <noscript><p class="form-note"><span data-en>Please enable JavaScript to choose a time.</span><span data-am>ሰዓት ለመምረጥ እባክዎ JavaScript ያንቁ።</span></p></noscript>
+    </form>
+  <% } %>
+  </div>
+</section>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+
+<script>
+(function(){
+  var form = document.getElementById('call-form');
+  if (!form) return;
+  var CUR = '<%= cfg.currency %>';
+  var AM = <%= lang === 'am' ? 'true' : 'false' %>;
+  var T = AM
+    ? { none: 'በዚህ ቀን ክፍት ሰዓት የለም።', load: 'በመጫን ላይ…', pick: 'እባክዎ ሰዓት ይምረጡ።' }
+    : { none: 'No open times on this day.', load: 'Loading…', pick: 'Please pick a time.' };
+  var panel = document.getElementById('sched-panel');
+  var slots = document.getElementById('slots');
+  var date = document.getElementById('f-date');
+  var total = document.getElementById('total');
+  var CATS = <%- catsJson %>;
+  function fmt(n){ return Number(n).toLocaleString('en-US') + ' ' + CUR; }
+  function cat(){ var r = form.querySelector('input[name=category_id]:checked'); if (!r) return null; for (var i = 0; i < CATS.length; i++) if (String(CATS[i].id) === r.value) return CATS[i]; return null; }
+
+  function type(){ var r = form.querySelector('input[name=call_type]:checked'); return r ? r.value : ''; }
+  function sync(){
+    var r = form.querySelector('input[name=call_type]:checked');
+    var t = type();
+    panel.hidden = t !== 'scheduled';
+    document.getElementById('lg-live').hidden = t === 'scheduled';
+    document.getElementById('lg-sched').hidden = t !== 'scheduled';
+    document.getElementById('note-live').hidden = t !== 'live';
+    document.getElementById('note-sched').hidden = t !== 'scheduled';
+    var c = cat();
+    var liveR = form.querySelector('input[value=live]'), schR = form.querySelector('input[value=scheduled]');
+    var livePrice = c ? c.live.price : (liveR ? Number(liveR.getAttribute('data-price')) : 0);
+    var schPrice = c ? c.scheduled.price : (schR ? Number(schR.getAttribute('data-price')) : 0);
+    var liveMin = c ? c.live.minutes : (liveR ? Number(liveR.getAttribute('data-min')) : 0);
+    var el;
+    if ((el = document.querySelector('.js-price-live'))) el.textContent = fmt(livePrice);
+    if ((el = document.querySelector('.js-price-scheduled'))) el.textContent = fmt(schPrice);
+    Array.prototype.forEach.call(document.querySelectorAll('.js-live-min'), function(m){ m.textContent = liveMin; });
+    total.textContent = r ? fmt(t === 'live' ? livePrice : schPrice) : '';
+    if (t === 'scheduled' && date.value && !slots.children.length) loadSlots();
+  }
+  function loadSlots(){
+    slots.innerHTML = '<span class="form-note">' + T.load + '</span>';
+    if (!date.value) { slots.innerHTML = ''; return; }
+    fetch('/call/slots?date=' + encodeURIComponent(date.value), { headers: { Accept: 'application/json' } })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        slots.innerHTML = '';
+        if (!d.slots || !d.slots.length) { slots.innerHTML = '<span class="form-note">' + T.none + '</span>'; return; }
+        d.slots.forEach(function(s){
+          var l = document.createElement('label'); l.className = 'pill';
+          var i = document.createElement('input'); i.type = 'radio'; i.name = 'slot'; i.value = s.iso;
+          var sp = document.createElement('span'); sp.textContent = s.label;
+          l.appendChild(i); l.appendChild(sp); slots.appendChild(l);
+        });
+      })
+      .catch(function(){ slots.innerHTML = '<span class="form-note">' + T.none + '</span>'; });
+  }
+  form.addEventListener('change', function(e){
+    if (e.target.name === 'call_type' || e.target.name === 'category_id') sync();
+    if (e.target === date) loadSlots();
+  });
+  form.addEventListener('submit', function(e){
+    if (CATS.length && !cat()) { e.preventDefault(); document.querySelector('.call-cats').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+    if (type() === 'scheduled' && !form.querySelector('input[name=slot]:checked')) {
+      e.preventDefault(); slots.insertAdjacentHTML('afterbegin', '<span class="form-note" style="color:var(--orange-deep)">' + T.pick + '</span>');
+    }
+  });
+  sync();
+})();
+</script>
+</body>
+</html>

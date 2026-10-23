@@ -203,6 +203,9 @@ root.get('/robots.txt', (req, res) => {
     'Disallow: /checkout',
     'Disallow: /download',
     'Disallow: /chapa',
+    'Disallow: /call/book',
+    'Disallow: /call/slots',
+    'Disallow: /call/return',
     '',
     `Sitemap: ${base}/sitemap.xml`,
     ''
@@ -223,6 +226,7 @@ root.get('/sitemap.xml', async (req, res, next) => {
     const pages = [
       { path: '/', priority: '1.0', freq: 'weekly' },
       { path: '/products', priority: '0.9', freq: 'weekly' },
+      { path: '/call', priority: '0.7', freq: 'monthly' },
       ...withSlugs(services).map(s => ({ path: '/services/' + s.slug, priority: '0.8', freq: 'monthly' })),
       ...products.map(p => ({ path: '/products/' + p.slug, priority: '0.8', freq: 'monthly', lastmod: p.created_at }))
     ];

@@ -8,6 +8,7 @@ const bodyParser = require('./lib/bodyParser');
 const publicRoutes = require('./routes/public');
 const adminRoutes = require('./routes/admin');
 const checkoutRoutes = require('./routes/checkout');
+const callRoutes = require('./routes/calls');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use((req, res, next) => {
   res.set('X-Content-Type-Options', 'nosniff');
   res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.set('X-Frame-Options', 'SAMEORIGIN');
-  if (/^\/(admin|checkout|download|chapa)(\/|$)/.test(req.path)) res.set('X-Robots-Tag', 'noindex, nofollow');
+  if (/^\/(admin|checkout|download|chapa|call\/(book|slots|return))(\/|$)/.test(req.path)) res.set('X-Robots-Tag', 'noindex, nofollow');
   next();
 });
 
@@ -51,6 +52,7 @@ app.use(session({
 
 app.use('/', publicRoutes);
 app.use('/', checkoutRoutes);
+app.use('/', callRoutes);
 app.use('/admin', adminRoutes);
 
 // Friendly, branded 404 (marked noindex so it never gets listed in Google).

@@ -13,6 +13,13 @@
     <h1>Dashboard</h1>
     <p class="admin-sub">A quick look at your site and orders.</p>
 
+    <% if (newCalls > 0) { %>
+    <div class="notice" style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+      <span><strong><%= newCalls %></strong> new paid call<%= newCalls === 1 ? '' : 's' %> waiting.</span>
+      <a href="/admin/calls" class="btn btn-primary">Open Calls</a>
+    </div>
+    <% } %>
+
     <div class="stat-grid">
       <div class="stat"><div class="num"><%= serviceCount %></div><div class="lbl">Active Services</div></div>
       <div class="stat"><div class="num"><%= orderCount %></div><div class="lbl">Total Orders</div></div>

@@ -179,3 +179,24 @@ See **docs/UPGRADE-GUIDE.md** for the step-by-step setup (run `migrations/002_pr
 * SEO helpers (titles, canonical links, hreflang, schema.org data) live in `lib/seo.js`; `/sitemap.xml` and `/robots.txt` are generated in `routes/public.js`.
 * Product files are stored in a **private** Supabase bucket (`products`) and served through short-lived signed links after payment is confirmed (`routes/checkout.js`, `lib/files.js`).
 * New templates must be registered in `scripts/build-templates.js` (`LOCALS_KEYS`).
+
+## Call service (live + scheduled calls)
+
+Customers open **Book a Call** (`/call`, `/am/call`), choose a **live call** or a **scheduled call**, pay with Chapa, and:
+
+- **Live:** after paying, call buttons (phone / WhatsApp) appear. Your numbers are never shown before payment. Turn live calls on/off with the switch at the top of **Admin → Calls**.
+- **Scheduled:** the customer picks a day and a free time slot; double booking is impossible. You call them back at that time.
+
+**Call types:** before choosing live or scheduled, the customer picks what they need help with (for example process and licensing, technical questions, material/labor/machinery costs). You add, edit, reorder, hide and delete these in **Admin → Call Types**, in English and Amharic. Each type can have its own live price, scheduled price and live-call length; an empty price uses the default from Call Settings. Three starter types are created by the SQL file.
+
+Everything else is edited in the admin panel: **Admin → Call Settings** (prices, slot length, working days and hours, your numbers, notifications) and **Admin → Calls** (bookings, status, notes).
+
+Setup (all free):
+1. Run `migrations/003_call_service.sql` once in the Supabase SQL Editor.
+2. In **Call Settings** enter your phone and WhatsApp numbers, prices and working hours.
+3. Optional notifications (each has an on/off switch in Call Settings):
+   - **Telegram:** create a bot with @BotFather, send it a message, set the secret `TELEGRAM_BOT_TOKEN`, and put your chat id in Call Settings.
+   - **Email (Resend free tier):** set the secret `RESEND_API_KEY` and your address in Call Settings. Until you verify your own domain in Resend, mail can only be sent to the address you used to sign up there.
+   - Set secrets with `npx wrangler secret put TELEGRAM_BOT_TOKEN` (and `RESEND_API_KEY`).
+
+All times are Addis Ababa time on the standard clock.

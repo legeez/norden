@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title><%= state === 'paid' ? (lang === 'am' ? 'ጥሪዎ ተረጋግጧል' : 'Call confirmed') : (lang === 'am' ? 'የጥሪ ክፍያ' : 'Call payment') %></title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="checkout-wrap">
+  <div class="checkout-box checkout-result">
+<% if (state === 'paid' && booking) { %>
+    <div class="icon">✅</div>
+    <h1 data-en>Call confirmed</h1><h1 data-am>ጥሪዎ ተረጋግጧል</h1>
+    <% if (booking.category_title) { %><p class="form-note" style="margin:-6px 0 8px;"><%= booking.category_title %></p><% } %>
+    <p class="lead" style="margin:14px 0;"><span data-en>Thank you, <%= booking.customer_name %>. Your payment has been received.</span><span data-am>እናመሰግናለን <%= booking.customer_name %>። ክፍያዎ ተቀብለናል።</span></p>
+
+  <% if (booking.call_type === 'scheduled') { %>
+    <div class="call-summary">
+      <div class="lbl"><span data-en>Your call</span><span data-am>ቀጠሮዎ</span></div>
+      <div class="big"><%= slotLabel %></div>
+      <div class="sub"><span data-en>Addis Ababa time. We will call you on <%= booking.channel === 'whatsapp' ? 'WhatsApp' : 'your phone' %> at <%= booking.customer_phone %>.</span><span data-am>በአዲስ አበባ ሰዓት። በ<%= booking.channel === 'whatsapp' ? 'ዋትስአፕ' : 'ስልክ' %> <%= booking.customer_phone %> እንደውልልዎታለን።</span></div>
+    </div>
+    <p class="form-note"><span data-en>Please keep your phone nearby. Need to change the time? Contact us with your reference.</span><span data-am>እባክዎ ስልክዎን ያቅርቡ። ሰዓቱን መቀየር ከፈለጉ ከማመሳከሪያ ቁጥርዎ ጋር ያግኙን።</span></p>
+  <% } else if (live && live.active) { %>
+    <div class="call-summary">
+      <div class="lbl"><span data-en>Call us now</span><span data-am>አሁን ይደውሉልን</span></div>
+      <div class="sub"><span data-en>Your live call is ready (about <%= live.minutes %> minutes). These buttons work for the next <%= live.minutesLeft %> minutes.</span><span data-am>ቀጥታ ጥሪዎ ዝግጁ ነው (ወደ <%= live.minutes %> ደቂቃ)። እነዚህ ቁልፎች ለቀጣዮቹ <%= live.minutesLeft %> ደቂቃዎች ይሰራሉ።</span></div>
+    </div>
+    <% if (live.whatsapp) { %><a href="<%= live.whatsapp %>" class="btn btn-primary" style="width:100%; margin:10px 0 0;"><span data-en>Call on WhatsApp</span><span data-am>በዋትስአፕ ይደውሉ</span></a><% } %>
+    <% if (live.phone) { %><a href="<%= live.phone %>" class="btn btn-outline" style="width:100%; margin:10px 0 0;"><span data-en>Call by phone</span><span data-am>በስልክ ይደውሉ</span></a><% } %>
+    <p class="form-note"><span data-en>Bookmark this page. If we do not pick up, try again or contact us with your reference.</span><span data-am>ይህን ገጽ ያስቀምጡ። ካላነሳን እንደገና ይሞክሩ ወይም ከማመሳከሪያ ቁጥርዎ ጋር ያግኙን።</span></p>
+  <% } else { %>
+    <p class="form-note"><span data-en>Your live call window has ended. Please contact us with your reference and we will help you.</span><span data-am>የቀጥታ ጥሪ ጊዜዎ አብቅቷል። እባክዎ ከማመሳከሪያ ቁጥርዎ ጋር ያግኙን።</span></p>
+  <% } %>
+    <p class="form-note"><span data-en>Reference</span><span data-am>ማመሳከሪያ</span>: <%= booking.tx_ref %></p>
+
+<% } else if (state === 'conflict') { %>
+    <div class="icon">⚠️</div>
+    <h1 data-en>Payment received</h1><h1 data-am>ክፍያ ተቀብለናል</h1>
+    <p class="lead" style="margin:14px 0;"><span data-en>That time was taken by another customer a moment before your payment. We have been notified and will contact you to reschedule or refund.</span><span data-am>ያ ሰዓት ከክፍያዎ ጥቂት ቀደም ብሎ በሌላ ደንበኛ ተይዟል። ተነግሮናል፤ ሰዓት ለመቀየር ወይም ገንዘብ ለመመለስ እናገኝዎታለን።</span></p>
+    <p class="form-note"><span data-en>Reference</span><span data-am>ማመሳከሪያ</span>: <%= booking ? booking.tx_ref : '' %></p>
+
+<% } else if (state === 'pending') { %>
+    <div class="icon">⏳</div>
+    <h1 data-en>Confirming your payment</h1><h1 data-am>ክፍያዎን በማረጋገጥ ላይ</h1>
+    <p class="lead" style="margin:14px 0;"><span data-en>We could not confirm your payment yet. Please wait a moment and refresh this page.</span><span data-am>ክፍያዎን ገና ማረጋገጥ አልቻልንም። እባክዎ ትንሽ ቆይተው ገጹን ያድሱ።</span></p>
+    <p class="form-note"><span data-en>If you were charged, contact us with this reference</span><span data-am>ከተቆረጠብዎ ከዚህ ማመሳከሪያ ጋር ያግኙን</span>: <%= booking ? booking.tx_ref : '' %></p>
+
+<% } else { %>
+    <div class="icon">❌</div>
+    <h1 data-en>Payment not completed</h1><h1 data-am>ክፍያ አልተጠናቀቀም</h1>
+    <p class="lead" style="margin:14px 0;"><span data-en><%= state === 'notfound' ? 'We could not find this booking.' : 'Your payment was not completed, so no call has been booked.' %></span><span data-am><%= state === 'notfound' ? 'ይህን ቀጠሮ አላገኘንም።' : 'ክፍያዎ አልተጠናቀቀም፣ ስለዚህ ጥሪ አልተያዘም።' %></span></p>
+    <a href="<%= lang === 'am' ? '/am/call' : '/call' %>" class="btn btn-primary" style="margin-top:8px;"><span data-en>Try again</span><span data-am>እንደገና ይሞክሩ</span></a>
+<% } %>
+    <a href="<%= lang === 'am' ? '/am' : '/' %>" class="btn btn-outline" style="margin-top:20px;"><span data-en>Back to site</span><span data-am>ወደ ድረ ገጹ ተመለስ</span></a>
+  </div>
+</div>
+</body>
+</html>
