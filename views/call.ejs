@@ -62,7 +62,7 @@
               <% if (cfg.live.on) { %><span data-en>Available now</span><span data-am>አሁን ክፍት ነው</span><% } else { %><span data-en>Offline right now</span><span data-am>አሁን አይገኝም</span><% } %>
             </span>
             <strong class="t"><span data-en>Live call</span><span data-am>ቀጥታ ጥሪ</span></strong>
-            <span class="d"><span data-en>Quick and short, about <span class="js-live-min"><%= cfg.live.minutes %></span> minutes. Pay, then call us straight away.</span><span data-am>ፈጣን እና አጭር፣ ወደ <span class="js-live-min"><%= cfg.live.minutes %></span> ደቂቃ። ይክፈሉ፣ ከዚያ ወዲያውኑ ይደውሉልን።</span></span>
+            <span class="d"><span data-en>Quick and short, about <b class="js-live-min" style="font-weight:inherit"><%= cfg.live.minutes %></b> minutes. Pay, then call us straight away.</span><span data-am>ፈጣን እና አጭር፣ ወደ <b class="js-live-min" style="font-weight:inherit"><%= cfg.live.minutes %></b> ደቂቃ። ይክፈሉ፣ ከዚያ ወዲያውኑ ይደውሉልን።</span></span>
             <span class="p js-price-live"><%= cfg.live.price.toLocaleString('en-US') %> <%= cfg.currency %></span>
           </span>
         </label>

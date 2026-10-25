@@ -200,3 +200,7 @@ Setup (all free):
    - Set secrets with `npx wrangler secret put TELEGRAM_BOT_TOKEN` (and `RESEND_API_KEY`).
 
 All times are Addis Ababa time on the standard clock.
+
+## Look and feel
+
+The public site uses the **Light and clean** palette: white header and pages, light peach hero banners, a dark footer, and the orange accent (`#FF5A1F`). All colors are variables at the top of `public/css/style.css` (`--ink`, `--paper`, `--paper-2`, `--peach`, `--orange`...), so the palette can be changed in one place. The admin panel keeps its own styles in `public/css/admin.css`.
