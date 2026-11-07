@@ -37,7 +37,7 @@ const OUT_FILE = path.join(__dirname, '..', 'worker', 'templates.generated.js');
 // means the destructuring below can never accidentally miss or mis-scope a
 // name.
 const LOCALS_KEYS = {
-  'index': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery', 'products', 'categories', 'seo'],
+  'index': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery', 'products', 'categories', 'callInfo', 'seo'],
   'products': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'groups', 'hasProducts', 'categories', 'seo'],
   'product': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'product', 'cat', 'related', 'seo'],
   'service': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'service', 'process', 'whyUs', 'products', 'seo'],

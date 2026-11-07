@@ -1,0 +1,507 @@
+From 5842870d4522a96f8510123d60297947d8eb86f5 Mon Sep 17 00:00:00 2001
+From: claude <a@b>
+Date: Sat, 7 Nov 2026 11:03:02 +0000
+Subject: [PATCH] Home page: Book a Call section; restore admin redesign
+
+---
+ lib/calls.js               |  24 ++++++-
+ public/css/admin.css       | 128 ++++++++++++++++++++++++-------------
+ public/css/style.css       |  23 +++++++
+ routes/public.js           |  10 ++-
+ scripts/build-templates.js |   2 +-
+ views/admin/_sidebar.ejs   |  65 ++++++++++++++-----
+ views/admin/dashboard.ejs  |  18 ++++--
+ views/index.ejs            |  62 ++++++++++++++----
+ 8 files changed, 252 insertions(+), 80 deletions(-)
+
+diff --git a/lib/calls.js b/lib/calls.js
+index b62e74b..efee5b4 100644
+--- a/lib/calls.js
++++ b/lib/calls.js
+@@ -232,6 +232,28 @@ async function deleteCategory(id) {
+   if (error) throw error;
+ }
+ 
++// ---------- Summary for the home page ----------
++// The home page is cached for a couple of minutes, so it never shows live "online/offline"
++// status (the Book a Call page does). Phone numbers are never included.
++function homeSummary(s, ready, cats, now) {
++  const phoneOn = flag(s.channel_phone), waOn = flag(s.channel_whatsapp);
++  const liveChannels = (phoneOn && telHref(s.call_phone)) || (waOn && waHref(s.call_whatsapp));
++  const livePrice = num(s.live_price), schedPrice = num(s.scheduled_price);
++  const min = (list) => (list.length ? Math.min.apply(null, list) : null);
++  const liveFrom = min(cats.length ? cats.map(c => (c.live_price !== null ? c.live_price : livePrice)) : [livePrice]);
++  const schedFrom = min(cats.length ? cats.map(c => (c.scheduled_price !== null ? c.scheduled_price : schedPrice)) : [schedPrice]);
++  const liveMinutes = min(cats.length ? cats.map(c => (c.live_minutes !== null ? c.live_minutes : clampInt(s.live_minutes, 1, 120, 10))) : [clampInt(s.live_minutes, 1, 120, 10)]);
++  const live = { on: !!(ready && liveChannels), from: liveFrom, minutes: liveMinutes };
++  const scheduled = {
++    on: !!(ready && flag(s.scheduled_enabled) && (phoneOn || waOn) && availableDays(s, now || new Date()).length > 0),
++    from: schedFrom, minutes: clampInt(s.slot_minutes, 10, 240, 30)
++  };
++  return {
++    show: live.on || scheduled.on, currency: s.currency || 'ETB', live, scheduled,
++    cats: cats.map(c => ({ title_en: c.title_en, title_am: c.title_am || c.title_en, desc_en: c.desc_en, desc_am: c.desc_am || c.desc_en }))
++  };
++}
++
+ // ---------- Bookings ----------
+ 
+ function slotError() { return Object.assign(new Error('SLOT_TAKEN'), { code: 'SLOT_TAKEN' }); }
+@@ -330,6 +352,6 @@ module.exports = {
+   intlDigits, telHref, waHref,
+   parseHM, parseDateKey, dateKey, toLocal, generateSlots, availableDays, formatSlot, maxAhead,
+   takenSlotSet, takenForDay,
+-  listCategories, listCategoriesSafe, getCategory, createCategory, updateCategory, deleteCategory,
++  homeSummary, listCategories, listCategoriesSafe, getCategory, createCategory, updateCategory, deleteCategory,
+   createBooking, getByTxRef, markPaid, markFailed, listBookings, updateCallStatus, countNewSafe
+ };
+diff --git a/public/css/admin.css b/public/css/admin.css
+index 4655c96..77c8bd0 100644
+--- a/public/css/admin.css
++++ b/public/css/admin.css
+@@ -1,6 +1,7 @@
+ @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&display=swap');
+ :root{
+-  --ink:#1B1B1F; --steel:#6B6B73; --line:#E6E1DA; --paper:#F6F4F1; --white:#fff; --peach:#FFF3EA;
++  --ink:#1B1B1F; --steel:#6B6B73; --line:#E8E3DC; --paper:#F5F3EF; --white:#fff; --peach:#FFF3EA; --sidebar:#17171B;
++  --shadow:0 1px 2px rgba(27,27,31,0.04), 0 10px 28px -14px rgba(27,27,31,0.16); --radius:14px;
+   --font-display: 'Oswald', 'Inter', sans-serif;
+   --orange:#FF5A1F; --orange-deep:#C7430B; --green:#1F8A4C; --red:#C0392B;
+   --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+@@ -10,55 +11,82 @@
+ body{ margin:0; font-family:var(--font); background:var(--paper); color:var(--ink); }
+ a{ color:inherit; }
+ .admin-shell{ display:flex; min-height:100vh; }
+-.admin-sidebar{ width:220px; background:var(--white); color:var(--steel); border-right:1px solid var(--line); flex-shrink:0; padding:22px 0; }
+-.admin-sidebar .brand{ padding:0 20px 22px; font-family:var(--font-display); font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink); border-bottom:1px solid var(--line); margin-bottom:14px; }
+-.admin-sidebar a{ display:block; padding:10px 20px; font-size:14px; text-decoration:none; }
+-.admin-sidebar a:hover, .admin-sidebar a.active{ background:var(--peach); color:var(--ink); border-right:3px solid var(--orange); }
+-.admin-sidebar a.active{ font-weight:600; }
+-.admin-sidebar form{ margin-top:20px; padding:0 20px; }
+-.admin-sidebar button{ width:100%; padding:8px; background:transparent; border:1px solid var(--line); color:var(--steel); border-radius:4px; cursor:pointer; font-size:13px; }
+-.admin-main{ flex:1; padding:32px 40px; max-width:1100px; }
+-.admin-main h1{ font-family:var(--font-display); font-weight:600; font-size:26px; text-transform:uppercase; letter-spacing:0.01em; margin:0 0 6px; }
+-.admin-sub{ color:var(--steel); font-size:14px; margin-bottom:26px; }
+-.card{ background:var(--white); border:1px solid var(--line); border-radius:8px; padding:22px; margin-bottom:20px; }
+-.card h2{ font-size:16px; margin:0 0 16px; }
+-.stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+-.stat{ background:var(--white); border:1px solid var(--line); border-radius:8px; padding:18px; }
+-.stat .num{ font-family:var(--font-mono); font-size:24px; font-weight:600; }
+-.stat .lbl{ color:var(--steel); font-size:12px; text-transform:uppercase; letter-spacing:0.05em; margin-top:4px; }
+-label{ display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; color:var(--steel); margin-bottom:6px; font-weight:600; }
++.admin-sidebar{ width:252px; background:var(--sidebar); color:#C9C9D1; flex-shrink:0; padding:22px 14px; position:sticky; top:0; height:100vh; overflow-y:auto; display:flex; flex-direction:column; }
++.admin-sidebar .brand{ display:flex; align-items:center; gap:12px; padding:2px 8px 20px; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.08); }
++.brand .logo{ width:40px; height:40px; border-radius:11px; background:var(--orange); color:#17171B; display:grid; place-items:center; font-family:var(--font-display); font-weight:700; font-size:21px; box-shadow:0 8px 18px -8px rgba(255,90,31,0.7); }
++.brand-text{ display:flex; flex-direction:column; line-height:1.15; }
++.brand .name{ color:#fff; font-family:var(--font-display); font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:0.06em; }
++.brand .sub{ font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:#8A8A95; margin-top:3px; }
++.side-nav{ display:flex; flex-direction:column; gap:2px; }
++.nav-group{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#74747F; padding:20px 12px 6px; font-weight:600; }
++.admin-sidebar a, .admin-sidebar button{ display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; font-size:14px; font-weight:500; text-decoration:none; color:#C9C9D1; transition:background .15s, color .15s; }
++.admin-sidebar svg{ width:18px; height:18px; flex-shrink:0; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; opacity:0.8; }
++.admin-sidebar a:hover{ background:rgba(255,255,255,0.07); color:#fff; }
++.admin-sidebar a.active{ background:rgba(255,90,31,0.16); color:#fff; font-weight:600; box-shadow:inset 3px 0 0 var(--orange); }
++.admin-sidebar a.active svg{ stroke:var(--orange); opacity:1; }
++.side-foot{ margin-top:auto; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:4px; }
++.admin-sidebar form{ margin:0; }
++.admin-sidebar button{ width:100%; background:transparent; border:1px solid rgba(255,255,255,0.14); cursor:pointer; font-family:inherit; }
++.admin-sidebar button:hover{ border-color:var(--orange); color:#fff; }
++.admin-main{ flex:1; padding:38px 46px 70px; max-width:1180px; min-width:0; }
++.admin-main h1{ font-family:var(--font-display); font-weight:600; font-size:32px; text-transform:uppercase; letter-spacing:0.01em; margin:0 0 6px; }
++.admin-sub{ color:var(--steel); font-size:14.5px; margin:0 0 28px; max-width:70ch; line-height:1.55; }
++.card{ background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:26px; margin-bottom:22px; box-shadow:var(--shadow); }
++.card h2{ font-size:17px; margin:0 0 18px; display:flex; align-items:center; gap:10px; }
++.card h2::before{ content:''; width:4px; height:18px; border-radius:2px; background:var(--orange); flex-shrink:0; }
++.stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:26px; }
++.stat{ background:var(--white); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); display:flex; align-items:center; gap:16px; }
++.stat .chip{ width:46px; height:46px; border-radius:12px; display:grid; place-items:center; flex-shrink:0; background:var(--peach); color:var(--orange-deep); }
++.stat .chip svg{ width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
++.stat .chip.green{ background:#E4F5EA; color:var(--green); }
++.stat .chip.ink{ background:#ECEBEE; color:var(--ink); }
++.stat .chip.amber{ background:#FFF3DA; color:#9A6B00; }
++.stat .num{ font-family:var(--font-mono); font-size:22px; font-weight:600; line-height:1.1; white-space:nowrap; }
++.stat > div{ min-width:0; }
++.stat .lbl{ color:var(--steel); font-size:12px; text-transform:uppercase; letter-spacing:0.06em; margin-top:5px; }
++label{ display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:var(--steel); margin-bottom:7px; font-weight:600; }
+ input[type=text], input[type=email], input[type=password], input[type=number], textarea, select{
+-  width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:5px; font-size:14px; font-family:var(--font); margin-bottom:16px; background:#fff;
++  width:100%; padding:11px 13px; border:1px solid #DDD6CD; border-radius:10px; font-size:14px; font-family:var(--font); margin-bottom:18px; background:#fff; color:var(--ink); transition:border-color .15s, box-shadow .15s;
+ }
+-textarea{ min-height:80px; resize:vertical; }
++textarea{ min-height:90px; resize:vertical; }
++input:focus, textarea:focus, select:focus{ outline:none; border-color:var(--orange) !important; box-shadow:0 0 0 3px rgba(255,90,31,0.16); }
+ .row2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+-.btn{ display:inline-block; padding:9px 18px; border-radius:5px; border:none; cursor:pointer; font-size:13px; font-weight:600; text-decoration:none; }
+-.btn-primary{ background:var(--orange); color:var(--ink); }
++.btn{ display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 20px; border-radius:10px; border:none; cursor:pointer; font-size:13.5px; font-weight:600; font-family:var(--font); text-decoration:none; transition:transform .12s, box-shadow .15s, background .15s; }
++.btn:hover{ transform:translateY(-1px); }
++.btn-primary{ background:var(--orange); color:var(--ink); box-shadow:0 8px 18px -8px rgba(255,90,31,0.75); }
+ .btn-primary:hover{ background:var(--orange-deep); color:#fff; }
+-.btn-danger{ background:#fff; color:var(--red); border:1px solid var(--red); }
+-.btn-outline{ background:#fff; border:1px solid var(--line); color:var(--ink); }
++.btn-danger{ background:#fff; color:var(--red); border:1px solid #E7B8B2; }
++.btn-danger:hover{ background:#FDF0EE; }
++.btn-outline{ background:#fff; border:1px solid #DDD6CD; color:var(--ink); }
++.btn-outline:hover{ border-color:var(--ink); }
+ table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+-th{ text-align:left; padding:10px 8px; border-bottom:2px solid var(--line); color:var(--steel); font-size:12px; text-transform:uppercase; letter-spacing:0.03em; }
+-td{ padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+-.badge{ display:inline-block; padding:3px 9px; border-radius:100px; font-size:11px; font-weight:600; text-transform:uppercase; }
++th{ text-align:left; padding:12px 12px; background:#FAF8F5; border-bottom:1px solid var(--line); color:var(--steel); font-size:11.5px; text-transform:uppercase; letter-spacing:0.07em; font-weight:600; }
++th:first-child{ border-top-left-radius:10px; } th:last-child{ border-top-right-radius:10px; }
++td{ padding:14px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
++tbody tr:hover td, table tr:hover td{ background:#FFFBF8; }
++tr:last-child td{ border-bottom:none; }
++.badge{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:100px; font-size:11px; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; }
++.badge::before{ content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+ .badge-paid{ background:#DFF3E4; color:var(--green); }
+ .badge-pending{ background:#FFF3DA; color:#9A6B00; }
+ .badge-failed{ background:#FBE0DE; color:var(--red); }
+ .thumb{ width:52px; height:52px; object-fit:cover; border-radius:4px; border:1px solid var(--line); }
+-.section-block{ border:1px solid var(--line); border-radius:8px; padding:18px; margin-bottom:14px; }
++.section-block{ border:1px solid var(--line); border-radius:12px; padding:20px; margin-bottom:14px; background:#FDFCFA; }
+ .section-block .meta{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+ .section-block .meta .order{ font-family:var(--font-mono); font-size:12px; color:var(--steel); }
+-.login-wrap{ max-width:360px; margin:110px auto; padding:0 20px; }
+-body:has(.login-wrap){ background:var(--peach); }
+-.login-box{ background:#fff; border:1px solid var(--line); border-radius:8px; padding:32px; }
++.login-wrap{ max-width:400px; margin:0 auto; padding:0 20px; min-height:100vh; display:flex; align-items:center; }
++body:has(.login-wrap){ background:radial-gradient(900px 500px at 80% -10%, #FFE3CC 0%, var(--peach) 55%); }
++.login-box{ width:100%; background:#fff; border:1px solid var(--line); border-radius:18px; padding:36px 34px; box-shadow:0 24px 60px -28px rgba(27,27,31,0.35); }
++.login-box::before{ content:'N'; display:grid; place-items:center; width:48px; height:48px; border-radius:13px; background:var(--orange); color:#17171B; font-family:var(--font-display); font-weight:700; font-size:25px; margin-bottom:20px; box-shadow:0 10px 22px -10px rgba(255,90,31,0.8); }
+ .login-box h1{ font-family:var(--font-display); font-weight:600; font-size:22px; text-transform:uppercase; margin:0 0 4px; }
+ .login-box p{ color:var(--steel); font-size:13px; margin-bottom:20px; }
+-.error{ background:#FBE0DE; color:var(--red); padding:9px 12px; border-radius:5px; font-size:13px; margin-bottom:16px; }
+-.notice{ background:#DFF3E4; color:var(--green); padding:9px 12px; border-radius:5px; font-size:13px; margin-bottom:16px; }
++.error{ background:#FDEEEC; color:#9B2C20; padding:12px 16px; border-radius:10px; border-left:4px solid var(--red); font-size:13.5px; line-height:1.5; margin-bottom:18px; }
++.notice{ background:#EAF7EF; color:#16643A; padding:12px 16px; border-radius:10px; border-left:4px solid var(--green); font-size:13.5px; line-height:1.5; margin-bottom:18px; }
+ .tabs{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+-.tabs a{ padding:8px 14px; border-radius:100px; font-size:13px; text-decoration:none; border:1px solid var(--line); color:var(--steel); }
++.tabs a{ padding:9px 16px; border-radius:100px; font-size:13px; font-weight:500; text-decoration:none; border:1px solid #DDD6CD; background:#fff; color:var(--steel); transition:border-color .15s, color .15s; }
++.tabs a:hover{ border-color:var(--ink); color:var(--ink); }
+ .tabs a.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+-.hint{ font-size:12px; color:var(--steel); margin:-10px 0 16px; }
++.hint{ font-size:12.5px; color:var(--steel); margin:-10px 0 18px; line-height:1.55; }
+ .lang-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+ .btn-row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:4px; }
+ .btn{ min-height:40px; }
+@@ -69,12 +97,16 @@ select{ min-height:40px; }
+ .card table{ min-width:560px; }
+ @media (max-width: 900px){
+   .admin-shell{ flex-direction:column; }
+-  .admin-sidebar{ width:100%; border-right:none; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; align-items:center; gap:2px 4px; padding:10px 8px; }
+-  .admin-sidebar .brand{ width:100%; border-bottom:none; margin:0; padding:6px 12px 8px; }
+-  .admin-sidebar a{ padding:10px 12px; border-radius:6px; border-right:none !important; }
+-  .admin-sidebar form{ margin:0; padding:0 4px; }
+-  .admin-sidebar button{ width:auto; padding:9px 14px; min-height:40px; }
+-  .admin-main{ padding:20px 16px 40px; max-width:100%; min-width:0; }
++  .admin-sidebar{ position:static; height:auto; width:100%; flex-direction:row; align-items:center; gap:6px; padding:10px 12px; overflow-x:auto; overflow-y:hidden; }
++  .admin-sidebar .brand{ border:none; margin:0; padding:0 8px 0 0; flex-shrink:0; }
++  .brand .sub, .nav-group{ display:none; }
++  .side-nav{ flex-direction:row; gap:4px; }
++  .side-foot{ margin:0 0 0 auto; padding:0; border:none; flex-direction:row; gap:4px; }
++  .admin-sidebar a, .admin-sidebar button{ white-space:nowrap; padding:9px 12px; }
++  .admin-sidebar button{ width:auto; }
++  .admin-sidebar a.active{ box-shadow:none; }
++  .admin-main{ padding:22px 16px 48px; max-width:100%; min-width:0; }
++  .admin-main h1{ font-size:26px; }
+   .stat-grid{ grid-template-columns:1fr 1fr; }
+   .row2, .lang-col{ grid-template-columns:1fr; gap:0; }
+   input[type=text], input[type=email], input[type=password], input[type=number], textarea, select{ font-size:16px; }
+@@ -102,10 +134,20 @@ select{ min-height:40px; }
+ .check input{ width:auto; margin:0; }
+ .day-row{ display:grid; grid-template-columns:160px 130px 30px 130px; gap:10px; align-items:center; margin-bottom:10px; }
+ .day-row input[type=time]{ margin:0; padding:8px 10px; border:1px solid var(--line); border-radius:5px; font-size:14px; }
+-.live-switch{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; border-left:4px solid var(--line); }
+-.live-switch.is-on{ border-left-color:var(--green); background:#F1FAF4; }
++.live-switch{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; border-left:5px solid #CFC8BE; }
++.live-switch.is-on{ border-left-color:var(--green); background:linear-gradient(90deg, #EEF9F2 0%, #FFFFFF 70%); }
+ .badge-new{ background:#FFF3DA; color:#9A6B00; }
+ .badge-confirmed{ background:#DFF3E4; color:var(--green); }
+ @media (max-width: 600px){ .day-row{ grid-template-columns:1fr 1fr; } .day-row span{ display:none; } .day-row label{ grid-column:1 / -1; } }
+ .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+ @media (max-width: 900px){ .row3{ grid-template-columns:1fr; gap:0; } }
++
++/* ---------- Quick actions (dashboard) ---------- */
++.section-title{ font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--steel); margin:6px 0 12px; font-weight:600; }
++.quick{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:26px; }
++.quick a{ display:flex; align-items:center; gap:12px; padding:16px 18px; background:var(--white); border:1px solid var(--line); border-radius:12px; text-decoration:none; font-weight:600; font-size:14px; box-shadow:var(--shadow); transition:transform .12s, border-color .15s; }
++.quick a:hover{ transform:translateY(-2px); border-color:var(--orange); }
++.quick svg{ width:20px; height:20px; stroke:var(--orange-deep); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
++@media (max-width: 900px){ .quick{ grid-template-columns:1fr 1fr; } }
++@media (max-width: 480px){ .quick{ grid-template-columns:1fr; } }
++input[type=checkbox], input[type=radio]{ accent-color:var(--orange); width:17px; height:17px; }
+diff --git a/public/css/style.css b/public/css/style.css
+index 1d6f8ed..e4cb39b 100644
+--- a/public/css/style.css
++++ b/public/css/style.css
+@@ -388,3 +388,26 @@ html.lang-am .call-type .t{ font-family:var(--font-am); text-transform:none; }
+ @media (max-width: 700px){ .call-cats{ grid-template-columns:1fr; } }
+ 
+ .nav-actions .btn{ white-space:nowrap; }
++
++/* ---------- Book a Call section (home page) ---------- */
++.call-home{ background:var(--peach); border-top:1px solid var(--line-dark); border-bottom:1px solid var(--line-dark); padding:clamp(56px, 8vw, 96px) 0; }
++.ch-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:clamp(24px, 4vw, 56px); margin-top:36px; align-items:start; }
++.ch-grid.no-topics{ grid-template-columns:minmax(0, 560px); }
++.ch-h{ font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--steel); margin:0 0 16px; font-weight:500; }
++html.lang-am .ch-h{ font-family:var(--font-am); text-transform:none; letter-spacing:0; font-size:14px; }
++.ch-topics ul{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
++.ch-topics li{ display:flex; gap:14px; align-items:flex-start; background:var(--white); border:1px solid var(--line-dark); border-radius:6px; padding:16px 18px; }
++.ch-topics .tick{ width:22px; height:22px; border-radius:50%; background:var(--orange); flex-shrink:0; margin-top:1px; position:relative; }
++.ch-topics .tick::after{ content:''; position:absolute; left:7px; top:4px; width:5px; height:10px; border:solid var(--ink); border-width:0 2px 2px 0; transform:rotate(45deg); }
++.ch-topics strong{ display:block; font-size:16px; margin-bottom:3px; }
++.ch-topics p{ margin:0; color:var(--steel); font-size:14px; line-height:1.55; }
++.ch-modes{ display:grid; gap:14px; }
++.ch-mode{ background:var(--white); border:1px solid var(--line-dark); border-left:4px solid var(--orange); border-radius:6px; padding:18px 20px; }
++.ch-mode-top{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
++.ch-mode-top strong{ font-family:var(--font-display); font-size:19px; text-transform:uppercase; letter-spacing:0.02em; }
++html.lang-am .ch-mode-top strong{ font-family:var(--font-am); text-transform:none; }
++.ch-price{ font-family:var(--font-mono); font-size:14px; color:var(--orange-deep); }
++.ch-mode p{ margin:0; color:var(--steel); font-size:14px; line-height:1.55; }
++.ch-cta{ justify-self:start; margin-top:6px; }
++.ch-note{ margin:0; font-size:13px; color:var(--steel); }
++@media (max-width: 860px){ .ch-grid{ grid-template-columns:1fr; } .ch-cta{ width:100%; } }
+diff --git a/routes/public.js b/routes/public.js
+index e0c13c6..2ee95a9 100644
+--- a/routes/public.js
++++ b/routes/public.js
+@@ -3,6 +3,7 @@ const store = require('../lib/store');
+ const seo = require('../lib/seo');
+ const { CATEGORIES, category } = require('../lib/catalog');
+ const { render } = require('../lib/render');
++const calls = require('../lib/calls');
+ 
+ // Helpers ---------------------------------------------------------------
+ 
+@@ -49,14 +50,16 @@ function languageRouter(lang) {
+   // ---------- Home ----------
+   router.get('/', async (req, res, next) => {
+     try {
+-      const [content, services, aboutFeatures, whyUs, process, gallery, products] = await Promise.all([
++      const [content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats] = await Promise.all([
+         store.getContent(),
+         store.listServices({ activeOnly: true }),
+         store.listBlocks('about_features'),
+         store.listBlocks('why_us'),
+         store.listBlocks('process'),
+         store.listGallery(),
+-        store.listProductsSafe({ activeOnly: true })
++        store.listProductsSafe({ activeOnly: true }),
++        calls.getSettingsSafe(),
++        calls.listCategoriesSafe({ activeOnly: true })
+       ]);
+       const ctx = pageContext(req, lang, '/');
+       const name = pick(content.company_name, lang);
+@@ -74,7 +77,8 @@ function languageRouter(lang) {
+       res.set('Cache-Control', 'public, max-age=120');
+       res.send(render('index', {
+         ...ctx, content, services: withSlugs(services), aboutFeatures, whyUs, process, gallery,
+-        products: decorate(products.slice(0, 6)), categories: CATEGORIES, seo: page
++        products: decorate(products.slice(0, 6)), categories: CATEGORIES, seo: page,
++        callInfo: calls.homeSummary(callSettings.s, callSettings.ready, callCats)
+       }));
+     } catch (err) { next(err); }
+   });
+diff --git a/scripts/build-templates.js b/scripts/build-templates.js
+index 12f1e53..cec0253 100644
+--- a/scripts/build-templates.js
++++ b/scripts/build-templates.js
+@@ -37,7 +37,7 @@ const OUT_FILE = path.join(__dirname, '..', 'worker', 'templates.generated.js');
+ // means the destructuring below can never accidentally miss or mis-scope a
+ // name.
+ const LOCALS_KEYS = {
+-  'index': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery', 'products', 'categories', 'seo'],
++  'index': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'aboutFeatures', 'whyUs', 'process', 'gallery', 'products', 'categories', 'callInfo', 'seo'],
+   'products': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'groups', 'hasProducts', 'categories', 'seo'],
+   'product': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'product', 'cat', 'related', 'seo'],
+   'service': ['lang', 'prefix', 'home', 'enUrl', 'amUrl', 'content', 'services', 'service', 'process', 'whyUs', 'products', 'seo'],
+diff --git a/views/admin/_sidebar.ejs b/views/admin/_sidebar.ejs
+index 4a63f39..6ad3221 100644
+--- a/views/admin/_sidebar.ejs
++++ b/views/admin/_sidebar.ejs
+@@ -1,16 +1,49 @@
+-<div class="admin-sidebar">
+-  <div class="brand">NORDEN ADMIN</div>
+-  <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+-  <a href="/admin/content" class="<%= active === 'content' ? 'active' : '' %>">Site Content</a>
+-  <a href="/admin/services" class="<%= active === 'services' ? 'active' : '' %>">Services & Prices</a>
+-  <a href="/admin/products" class="<%= active === 'products' ? 'active' : '' %>">Products &amp; Files</a>
+-  <a href="/admin/blocks/about_features" class="<%= active === 'blocks' ? 'active' : '' %>">Page Sections</a>
+-  <a href="/admin/gallery" class="<%= active === 'gallery' ? 'active' : '' %>">Project Gallery</a>
+-  <a href="/admin/calls" class="<%= active === 'calls' ? 'active' : '' %>">Calls</a>
+-  <a href="/admin/payments" class="<%= active === 'payments' ? 'active' : '' %>">Payments</a>
+-  <a href="/admin/call-types" class="<%= active === 'call-types' ? 'active' : '' %>">Call Types</a>
+-  <a href="/admin/call-settings" class="<%= active === 'call-settings' ? 'active' : '' %>">Call Settings</a>
+-  <a href="/admin/orders" class="<%= active === 'orders' ? 'active' : '' %>">Orders</a>
+-  <a href="/" target="_blank">View Site &#8599;</a>
+-  <form method="POST" action="/admin/logout"><button type="submit">Log Out</button></form>
+-</div>
++<%
++var P = {
++  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
++  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
++  tag: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
++  box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
++  layout: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
++  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
++  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
++  list: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
++  sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
++  bag: '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
++  card: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
++  ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
++  out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'
++};
++function ico(n){ return '<svg viewBox="0 0 24 24" aria-hidden="true">' + P[n] + '</svg>'; }
++function item(key, href, icon, label){
++  return '<a href="' + href + '" class="' + (active === key ? 'active' : '') + '">' + ico(icon) + '<span>' + label + '</span></a>';
++}
++%>
++<aside class="admin-sidebar">
++  <div class="brand"><span class="logo">N</span><span class="brand-text"><span class="name">Norden</span><span class="sub">Admin panel</span></span></div>
++
++  <nav class="side-nav">
++    <%- item('dashboard', '/admin', 'home', 'Dashboard') %>
++
++    <div class="nav-group">Website</div>
++    <%- item('content', '/admin/content', 'file', 'Site Content') %>
++    <%- item('services', '/admin/services', 'tag', 'Services &amp; Prices') %>
++    <%- item('products', '/admin/products', 'box', 'Products &amp; Files') %>
++    <%- item('blocks', '/admin/blocks/about_features', 'layout', 'Page Sections') %>
++    <%- item('gallery', '/admin/gallery', 'image', 'Project Gallery') %>
++
++    <div class="nav-group">Calls</div>
++    <%- item('calls', '/admin/calls', 'phone', 'Calls') %>
++    <%- item('call-types', '/admin/call-types', 'list', 'Call Types') %>
++    <%- item('call-settings', '/admin/call-settings', 'sliders', 'Call Settings') %>
++
++    <div class="nav-group">Sales</div>
++    <%- item('orders', '/admin/orders', 'bag', 'Orders') %>
++    <%- item('payments', '/admin/payments', 'card', 'Payments') %>
++  </nav>
++
++  <div class="side-foot">
++    <a href="/" target="_blank" rel="noopener"><%- ico('ext') %><span>View site</span></a>
++    <form method="POST" action="/admin/logout"><button type="submit"><%- ico('out') %><span>Log out</span></button></form>
++  </div>
++</aside>
+diff --git a/views/admin/dashboard.ejs b/views/admin/dashboard.ejs
+index a38a0ed..b11ca5c 100644
+--- a/views/admin/dashboard.ejs
++++ b/views/admin/dashboard.ejs
+@@ -11,7 +11,7 @@
+   <%- include('_sidebar', { active: 'dashboard' }) %>
+   <div class="admin-main">
+     <h1>Dashboard</h1>
+-    <p class="admin-sub">A quick look at your site and orders.</p>
++    <p class="admin-sub">Welcome back. Here is a quick look at your site, orders and calls.</p>
+ 
+     <% if (newCalls > 0) { %>
+     <div class="notice" style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; align-items:center;">
+@@ -21,10 +21,18 @@
+     <% } %>
+ 
+     <div class="stat-grid">
+-      <div class="stat"><div class="num"><%= serviceCount %></div><div class="lbl">Active Services</div></div>
+-      <div class="stat"><div class="num"><%= orderCount %></div><div class="lbl">Total Orders</div></div>
+-      <div class="stat"><div class="num"><%= paidCount %></div><div class="lbl">Paid Orders</div></div>
+-      <div class="stat"><div class="num">ETB <%= revenue.toLocaleString('en-US') %></div><div class="lbl">Revenue Collected</div></div>
++      <div class="stat"><span class="chip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></span><div><div class="num"><%= serviceCount %></div><div class="lbl">Active Services</div></div></div>
++      <div class="stat"><span class="chip ink"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span><div><div class="num"><%= orderCount %></div><div class="lbl">Total Orders</div></div></div>
++      <div class="stat"><span class="chip green"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><div><div class="num"><%= paidCount %></div><div class="lbl">Paid Orders</div></div></div>
++      <div class="stat"><span class="chip amber"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></span><div><div class="num">ETB <%= revenue.toLocaleString('en-US') %></div><div class="lbl">Revenue Collected</div></div></div>
++    </div>
++
++    <div class="section-title">Quick actions</div>
++    <div class="quick">
++      <a href="/admin/calls"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Manage calls</span></a>
++      <a href="/admin/services"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg><span>Edit services</span></a>
++      <a href="/admin/payments"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Payments</span></a>
++      <a href="/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>View website</span></a>
+     </div>
+ 
+     <div class="card">
+diff --git a/views/index.ejs b/views/index.ejs
+index efb50a6..04f8c7e 100644
+--- a/views/index.ejs
++++ b/views/index.ejs
+@@ -176,6 +176,57 @@
+   </div>
+ </section>
+ 
++<% if (callInfo.show) { %>
++<section class="call-home" id="call">
++  <div class="wrap">
++    <div class="section-head">
++      <div class="eyebrow"><span data-en>TALK TO AN EXPERT</span><span data-am>ከባለሙያ ጋር ይወያዩ</span></div>
++      <h2 data-en>Book a call</h2><h2 data-am>ጥሪ ያስይዙ</h2>
++      <p class="lead" data-en>Quick, practical advice on BOQ, costs, licensing and site questions, by phone or WhatsApp.</p>
++      <p class="lead" data-am>ስለ BOQ፣ ወጪ፣ ፈቃድ እና የሳይት ጥያቄዎች ፈጣን እና ተግባራዊ ምክር በስልክ ወይም በዋትስአፕ።</p>
++    </div>
++
++    <div class="ch-grid <%= callInfo.cats.length ? '' : 'no-topics' %>">
++      <% if (callInfo.cats.length) { %>
++      <div class="ch-topics">
++        <h3 class="ch-h"><span data-en>What can we help you with?</span><span data-am>በምን ልንረዳዎት እንችላለን?</span></h3>
++        <ul>
++          <% callInfo.cats.forEach(function(c){ %>
++          <li>
++            <span class="tick" aria-hidden="true"></span>
++            <div>
++              <strong data-en><%= c.title_en %></strong><strong data-am><%= c.title_am %></strong>
++              <% if (c.desc_en) { %><p data-en><%= c.desc_en %></p><p data-am><%= c.desc_am %></p><% } %>
++            </div>
++          </li>
++          <% }) %>
++        </ul>
++      </div>
++      <% } %>
++
++      <div class="ch-modes">
++        <% if (callInfo.live.on) { %>
++        <div class="ch-mode">
++          <div class="ch-mode-top"><strong data-en>Live call</strong><strong data-am>ቀጥታ ጥሪ</strong><span class="ch-price"><span data-en>From </span><span data-am>ከ</span><%= callInfo.live.from.toLocaleString('en-US') %> <%= callInfo.currency %></span></div>
++          <p data-en>Quick and short, about <%= callInfo.live.minutes %> minutes. Pay, then call us right away when we are online.</p>
++          <p data-am>ፈጣን እና አጭር፣ ወደ <%= callInfo.live.minutes %> ደቂቃ። ይክፈሉ፣ ከዚያ ኦንላይን ስንሆን ወዲያውኑ ይደውሉልን።</p>
++        </div>
++        <% } %>
++        <% if (callInfo.scheduled.on) { %>
++        <div class="ch-mode">
++          <div class="ch-mode-top"><strong data-en>Scheduled call</strong><strong data-am>ቀጠሮ ያለው ጥሪ</strong><span class="ch-price"><span data-en>From </span><span data-am>ከ</span><%= callInfo.scheduled.from.toLocaleString('en-US') %> <%= callInfo.currency %></span></div>
++          <p data-en>Pick a day and time that suits you, about <%= callInfo.scheduled.minutes %> minutes. We call you.</p>
++          <p data-am>የሚመችዎትን ቀን እና ሰዓት ይምረጡ፣ ወደ <%= callInfo.scheduled.minutes %> ደቂቃ። እኛ እንደውልልዎታለን።</p>
++        </div>
++        <% } %>
++        <a class="btn btn-primary ch-cta" href="<%= prefix %>/call"><span data-en>Book a call</span><span data-am>ጥሪ ያስይዙ</span></a>
++        <p class="ch-note"><span data-en>Secure payment with Chapa. Choose your topic and time on the next page.</span><span data-am>በChapa ደህንነቱ የተጠበቀ ክፍያ። ርዕስዎን እና ሰዓትዎን በሚቀጥለው ገጽ ይምረጡ።</span></p>
++      </div>
++    </div>
++  </div>
++</section>
++<% } %>
++
+ <section class="products" id="templates">
+   <div class="wrap">
+     <div class="section-head">
+@@ -265,17 +316,6 @@
+     </div>
+   </div>
+ </section>
+-
+-<section class="cta-band" id="call">
+-  <div class="wrap inner">
+-    <div>
+-      <h2 data-en>Need quick advice? Talk to an expert.</h2>
+-      <h2 data-am>ፈጣን ምክር ይፈልጋሉ? ከባለሙያ ጋር ይወያዩ።</h2>
+-    </div>
+-    <a class="btn btn-primary" href="<%= prefix %>/call"><span data-en>Book a call</span><span data-am>ጥሪ ያስይዙ</span></a>
+-  </div>
+-</section>
+-
+ <section class="contact" id="contact">
+   <div class="wrap">
+     <div class="section-head">
+-- 
+2.43.0
+

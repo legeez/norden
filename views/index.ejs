@@ -176,6 +176,57 @@
   </div>
 </section>
 
+<% if (callInfo.show) { %>
+<section class="call-home" id="call">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>TALK TO AN EXPERT</span><span data-am>ከባለሙያ ጋር ይወያዩ</span></div>
+      <h2 data-en>Book a call</h2><h2 data-am>ጥሪ ያስይዙ</h2>
+      <p class="lead" data-en>Quick, practical advice on BOQ, costs, licensing and site questions, by phone or WhatsApp.</p>
+      <p class="lead" data-am>ስለ BOQ፣ ወጪ፣ ፈቃድ እና የሳይት ጥያቄዎች ፈጣን እና ተግባራዊ ምክር በስልክ ወይም በዋትስአፕ።</p>
+    </div>
+
+    <div class="ch-grid <%= callInfo.cats.length ? '' : 'no-topics' %>">
+      <% if (callInfo.cats.length) { %>
+      <div class="ch-topics">
+        <h3 class="ch-h"><span data-en>What can we help you with?</span><span data-am>በምን ልንረዳዎት እንችላለን?</span></h3>
+        <ul>
+          <% callInfo.cats.forEach(function(c){ %>
+          <li>
+            <span class="tick" aria-hidden="true"></span>
+            <div>
+              <strong data-en><%= c.title_en %></strong><strong data-am><%= c.title_am %></strong>
+              <% if (c.desc_en) { %><p data-en><%= c.desc_en %></p><p data-am><%= c.desc_am %></p><% } %>
+            </div>
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+      <% } %>
+
+      <div class="ch-modes">
+        <% if (callInfo.live.on) { %>
+        <div class="ch-mode">
+          <div class="ch-mode-top"><strong data-en>Live call</strong><strong data-am>ቀጥታ ጥሪ</strong><span class="ch-price"><span data-en>From </span><span data-am>ከ</span><%= callInfo.live.from.toLocaleString('en-US') %> <%= callInfo.currency %></span></div>
+          <p data-en>Quick and short, about <%= callInfo.live.minutes %> minutes. Pay, then call us right away when we are online.</p>
+          <p data-am>ፈጣን እና አጭር፣ ወደ <%= callInfo.live.minutes %> ደቂቃ። ይክፈሉ፣ ከዚያ ኦንላይን ስንሆን ወዲያውኑ ይደውሉልን።</p>
+        </div>
+        <% } %>
+        <% if (callInfo.scheduled.on) { %>
+        <div class="ch-mode">
+          <div class="ch-mode-top"><strong data-en>Scheduled call</strong><strong data-am>ቀጠሮ ያለው ጥሪ</strong><span class="ch-price"><span data-en>From </span><span data-am>ከ</span><%= callInfo.scheduled.from.toLocaleString('en-US') %> <%= callInfo.currency %></span></div>
+          <p data-en>Pick a day and time that suits you, about <%= callInfo.scheduled.minutes %> minutes. We call you.</p>
+          <p data-am>የሚመችዎትን ቀን እና ሰዓት ይምረጡ፣ ወደ <%= callInfo.scheduled.minutes %> ደቂቃ። እኛ እንደውልልዎታለን።</p>
+        </div>
+        <% } %>
+        <a class="btn btn-primary ch-cta" href="<%= prefix %>/call"><span data-en>Book a call</span><span data-am>ጥሪ ያስይዙ</span></a>
+        <p class="ch-note"><span data-en>Secure payment with Chapa. Choose your topic and time on the next page.</span><span data-am>በChapa ደህንነቱ የተጠበቀ ክፍያ። ርዕስዎን እና ሰዓትዎን በሚቀጥለው ገጽ ይምረጡ።</span></p>
+      </div>
+    </div>
+  </div>
+</section>
+<% } %>
+
 <section class="products" id="templates">
   <div class="wrap">
     <div class="section-head">
@@ -265,17 +316,6 @@
     </div>
   </div>
 </section>
-
-<section class="cta-band" id="call">
-  <div class="wrap inner">
-    <div>
-      <h2 data-en>Need quick advice? Talk to an expert.</h2>
-      <h2 data-am>ፈጣን ምክር ይፈልጋሉ? ከባለሙያ ጋር ይወያዩ።</h2>
-    </div>
-    <a class="btn btn-primary" href="<%= prefix %>/call"><span data-en>Book a call</span><span data-am>ጥሪ ያስይዙ</span></a>
-  </div>
-</section>
-
 <section class="contact" id="contact">
   <div class="wrap">
     <div class="section-head">

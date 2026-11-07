@@ -388,3 +388,26 @@ html.lang-am .call-type .t{ font-family:var(--font-am); text-transform:none; }
 @media (max-width: 700px){ .call-cats{ grid-template-columns:1fr; } }
 
 .nav-actions .btn{ white-space:nowrap; }
+
+/* ---------- Book a Call section (home page) ---------- */
+.call-home{ background:var(--peach); border-top:1px solid var(--line-dark); border-bottom:1px solid var(--line-dark); padding:clamp(56px, 8vw, 96px) 0; }
+.ch-grid{ display:grid; grid-template-columns:1.15fr 1fr; gap:clamp(24px, 4vw, 56px); margin-top:36px; align-items:start; }
+.ch-grid.no-topics{ grid-template-columns:minmax(0, 560px); }
+.ch-h{ font-family:var(--font-mono); font-size:12px; text-transform:uppercase; letter-spacing:0.08em; color:var(--steel); margin:0 0 16px; font-weight:500; }
+html.lang-am .ch-h{ font-family:var(--font-am); text-transform:none; letter-spacing:0; font-size:14px; }
+.ch-topics ul{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+.ch-topics li{ display:flex; gap:14px; align-items:flex-start; background:var(--white); border:1px solid var(--line-dark); border-radius:6px; padding:16px 18px; }
+.ch-topics .tick{ width:22px; height:22px; border-radius:50%; background:var(--orange); flex-shrink:0; margin-top:1px; position:relative; }
+.ch-topics .tick::after{ content:''; position:absolute; left:7px; top:4px; width:5px; height:10px; border:solid var(--ink); border-width:0 2px 2px 0; transform:rotate(45deg); }
+.ch-topics strong{ display:block; font-size:16px; margin-bottom:3px; }
+.ch-topics p{ margin:0; color:var(--steel); font-size:14px; line-height:1.55; }
+.ch-modes{ display:grid; gap:14px; }
+.ch-mode{ background:var(--white); border:1px solid var(--line-dark); border-left:4px solid var(--orange); border-radius:6px; padding:18px 20px; }
+.ch-mode-top{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+.ch-mode-top strong{ font-family:var(--font-display); font-size:19px; text-transform:uppercase; letter-spacing:0.02em; }
+html.lang-am .ch-mode-top strong{ font-family:var(--font-am); text-transform:none; }
+.ch-price{ font-family:var(--font-mono); font-size:14px; color:var(--orange-deep); }
+.ch-mode p{ margin:0; color:var(--steel); font-size:14px; line-height:1.55; }
+.ch-cta{ justify-self:start; margin-top:6px; }
+.ch-note{ margin:0; font-size:13px; color:var(--steel); }
+@media (max-width: 860px){ .ch-grid{ grid-template-columns:1fr; } .ch-cta{ width:100%; } }

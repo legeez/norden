@@ -3,6 +3,7 @@ const store = require('../lib/store');
 const seo = require('../lib/seo');
 const { CATEGORIES, category } = require('../lib/catalog');
 const { render } = require('../lib/render');
+const calls = require('../lib/calls');
 
 // Helpers ---------------------------------------------------------------
 
@@ -49,14 +50,16 @@ function languageRouter(lang) {
   // ---------- Home ----------
   router.get('/', async (req, res, next) => {
     try {
-      const [content, services, aboutFeatures, whyUs, process, gallery, products] = await Promise.all([
+      const [content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats] = await Promise.all([
         store.getContent(),
         store.listServices({ activeOnly: true }),
         store.listBlocks('about_features'),
         store.listBlocks('why_us'),
         store.listBlocks('process'),
         store.listGallery(),
-        store.listProductsSafe({ activeOnly: true })
+        store.listProductsSafe({ activeOnly: true }),
+        calls.getSettingsSafe(),
+        calls.listCategoriesSafe({ activeOnly: true })
       ]);
       const ctx = pageContext(req, lang, '/');
       const name = pick(content.company_name, lang);
@@ -74,7 +77,8 @@ function languageRouter(lang) {
       res.set('Cache-Control', 'public, max-age=120');
       res.send(render('index', {
         ...ctx, content, services: withSlugs(services), aboutFeatures, whyUs, process, gallery,
-        products: decorate(products.slice(0, 6)), categories: CATEGORIES, seo: page
+        products: decorate(products.slice(0, 6)), categories: CATEGORIES, seo: page,
+        callInfo: calls.homeSummary(callSettings.s, callSettings.ready, callCats)
       }));
     } catch (err) { next(err); }
   });

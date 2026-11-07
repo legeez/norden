@@ -1,16 +1,49 @@
-<div class="admin-sidebar">
-  <div class="brand">NORDEN ADMIN</div>
-  <a href="/admin" class="<%= active === 'dashboard' ? 'active' : '' %>">Dashboard</a>
-  <a href="/admin/content" class="<%= active === 'content' ? 'active' : '' %>">Site Content</a>
-  <a href="/admin/services" class="<%= active === 'services' ? 'active' : '' %>">Services & Prices</a>
-  <a href="/admin/products" class="<%= active === 'products' ? 'active' : '' %>">Products &amp; Files</a>
-  <a href="/admin/blocks/about_features" class="<%= active === 'blocks' ? 'active' : '' %>">Page Sections</a>
-  <a href="/admin/gallery" class="<%= active === 'gallery' ? 'active' : '' %>">Project Gallery</a>
-  <a href="/admin/calls" class="<%= active === 'calls' ? 'active' : '' %>">Calls</a>
-  <a href="/admin/payments" class="<%= active === 'payments' ? 'active' : '' %>">Payments</a>
-  <a href="/admin/call-types" class="<%= active === 'call-types' ? 'active' : '' %>">Call Types</a>
-  <a href="/admin/call-settings" class="<%= active === 'call-settings' ? 'active' : '' %>">Call Settings</a>
-  <a href="/admin/orders" class="<%= active === 'orders' ? 'active' : '' %>">Orders</a>
-  <a href="/" target="_blank">View Site &#8599;</a>
-  <form method="POST" action="/admin/logout"><button type="submit">Log Out</button></form>
-</div>
+<%
+var P = {
+  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+  tag: '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>',
+  box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  layout: '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>',
+  image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+  phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  list: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+  bag: '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  card: '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+  ext: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+  out: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'
+};
+function ico(n){ return '<svg viewBox="0 0 24 24" aria-hidden="true">' + P[n] + '</svg>'; }
+function item(key, href, icon, label){
+  return '<a href="' + href + '" class="' + (active === key ? 'active' : '') + '">' + ico(icon) + '<span>' + label + '</span></a>';
+}
+%>
+<aside class="admin-sidebar">
+  <div class="brand"><span class="logo">N</span><span class="brand-text"><span class="name">Norden</span><span class="sub">Admin panel</span></span></div>
+
+  <nav class="side-nav">
+    <%- item('dashboard', '/admin', 'home', 'Dashboard') %>
+
+    <div class="nav-group">Website</div>
+    <%- item('content', '/admin/content', 'file', 'Site Content') %>
+    <%- item('services', '/admin/services', 'tag', 'Services &amp; Prices') %>
+    <%- item('products', '/admin/products', 'box', 'Products &amp; Files') %>
+    <%- item('blocks', '/admin/blocks/about_features', 'layout', 'Page Sections') %>
+    <%- item('gallery', '/admin/gallery', 'image', 'Project Gallery') %>
+
+    <div class="nav-group">Calls</div>
+    <%- item('calls', '/admin/calls', 'phone', 'Calls') %>
+    <%- item('call-types', '/admin/call-types', 'list', 'Call Types') %>
+    <%- item('call-settings', '/admin/call-settings', 'sliders', 'Call Settings') %>
+
+    <div class="nav-group">Sales</div>
+    <%- item('orders', '/admin/orders', 'bag', 'Orders') %>
+    <%- item('payments', '/admin/payments', 'card', 'Payments') %>
+  </nav>
+
+  <div class="side-foot">
+    <a href="/" target="_blank" rel="noopener"><%- ico('ext') %><span>View site</span></a>
+    <form method="POST" action="/admin/logout"><button type="submit"><%- ico('out') %><span>Log out</span></button></form>
+  </div>
+</aside>
