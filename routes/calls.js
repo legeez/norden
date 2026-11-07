@@ -9,6 +9,7 @@ const seo = require('../lib/seo');
 const { render } = require('../lib/render');
 
 const flag = calls.flag;
+const slugOf = (c) => seo.slugify(c.title_en) || String(c.id);
 
 function pick(obj, lang) { return lang === 'am' && obj.am ? obj.am : obj.en; }
 function withSlugs(services) { return services.map(s => ({ ...s, slug: seo.slugify(s.title_en) || String(s.id) })); }
@@ -95,7 +96,7 @@ async function renderCallPage(req, res, lang, extra) {
   ]);
   const cfg = publicConfig(cs.s, cs.ready);
   const cats = categories.map(c => ({
-    id: c.id, title_en: c.title_en, title_am: c.title_am || c.title_en, desc_en: c.desc_en, desc_am: c.desc_am || c.desc_en,
+    id: c.id, slug: slugOf(c), title_en: c.title_en, title_am: c.title_am || c.title_en, desc_en: c.desc_en, desc_am: c.desc_am || c.desc_en,
     ...categoryTerms(c, cfg)
   }));
   // Safe to print inside a <script> tag.
@@ -104,6 +105,9 @@ async function renderCallPage(req, res, lang, extra) {
   if (cfg.scheduled.on && !days.length) cfg.scheduled.on = false; // nothing left to book
   const ctx = pageContext(req, lang, '/call');
   const name = pick(content.company_name, lang);
+  // /call?type=<call-type> opens the page with that call type already chosen.
+  const wanted = String((req.query && req.query.type) || '');
+  const preset = wanted ? cats.find(c => c.slug === wanted || String(c.id) === wanted) : null;
   const crumbs = [
     { name, url: seo.localizedUrl(ctx.base, lang, '/') },
     { name: lang === 'am' ? 'ጥሪ ያስይዙ' : 'Book a call', url: seo.localizedUrl(ctx.base, lang, '/call') }
@@ -120,7 +124,7 @@ async function renderCallPage(req, res, lang, extra) {
   res.status(errCode && errCode !== 'none' ? 400 : 200).send(render('call', {
     ...ctx, content, services: withSlugs(services), cfg, days, cats, catsJson,
     errorMsg: errCode && ERRORS[errCode] ? ERRORS[errCode] : null,
-    values: (extra && extra.values) || {},
+    values: Object.assign({}, preset ? { category: preset.id } : {}, (extra && extra.values) || {}),
     seo: page
   }));
 }
@@ -314,5 +318,61 @@ router.post('/chapa/call-webhook', async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+// ---------- One search-friendly page per call type: /call/<call-type> ----------
+async function renderCallTypePage(req, res, next, lang) {
+  try {
+    const [content, services, cs, categories] = await Promise.all([
+      store.getContent(), store.listServices({ activeOnly: true }), calls.getSettingsSafe(),
+      calls.listCategoriesSafe({ activeOnly: true })
+    ]);
+    const list = categories.map(c => ({ ...c, slug: slugOf(c) }));
+    let cat = list.find(c => c.slug === req.params.slug);
+    if (!cat && /^\d+$/.test(req.params.slug)) {
+      const byId = list.find(c => String(c.id) === req.params.slug);
+      if (byId) return res.redirect(301, (lang === 'am' ? '/am' : '') + '/call/' + byId.slug);
+    }
+    if (!cat) return require('./public').notFound(req, res, lang, content);
+
+    const s = cs.s;
+    const cfg = publicConfig(s, cs.ready);
+    const terms = categoryTerms(cat, cfg);
+    const liveOn = cfg.live.channels.length > 0 && cfg.ready;
+    const schedOn = cfg.ready && flag(s.scheduled_enabled) && cfg.channels.length > 0;
+    const path = '/call/' + cat.slug;
+    const ctx = pageContext(req, lang, path);
+    const name = pick(content.company_name, lang);
+    const title = lang === 'am' && cat.title_am ? cat.title_am : cat.title_en;
+    const desc = lang === 'am' && cat.desc_am ? cat.desc_am : cat.desc_en;
+    const paras = (lang === 'am' && cat.body_am ? cat.body_am : cat.body_en || '').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+    const autoDesc = desc || (lang === 'am'
+      ? `${title} — ከባለሙያ ጋር በስልክ ወይም በዋትስአፕ ይወያዩ። ቀጥታ ጥሪ ወይም ቀጠሮ ያለው ጥሪ ያስይዙ።`
+      : `${title}: speak to a construction expert in Addis Ababa by phone or WhatsApp. Book a live call or schedule a time.`);
+    const crumbs = [
+      { name, url: seo.localizedUrl(ctx.base, lang, '/') },
+      { name: lang === 'am' ? 'ጥሪ ያስይዙ' : 'Book a call', url: seo.localizedUrl(ctx.base, lang, '/call') },
+      { name: title, url: seo.localizedUrl(ctx.base, lang, path) }
+    ];
+    const page = seo.seoFor({
+      req, lang, path,
+      title: seo.seoText(cat, lang, 'title', lang === 'am' ? `${title} — የባለሙያ ጥሪ | ${name}` : `${title} — Expert Call | ${name}`),
+      description: seo.seoText(cat, lang, 'desc', autoDesc),
+      ld: [
+        seo.callTypeLd(ctx.base, lang, {
+          name: title, description: paras[0] || autoDesc, path, currency: cfg.currency,
+          liveOn, livePrice: terms.live.price, scheduledOn: schedOn, scheduledPrice: terms.scheduled.price
+        }),
+        seo.breadcrumbLd(crumbs)
+      ]
+    });
+    res.set('Cache-Control', 'public, max-age=120');
+    res.send(render('call-type', {
+      ...ctx, content, services: withSlugs(services), cat, terms, cfg: { ...cfg, live: { ...cfg.live, on: liveOn }, scheduled: { ...cfg.scheduled, on: schedOn } },
+      others: list.filter(c => c.id !== cat.id), paras, seo: page
+    }));
+  } catch (err) { next(err); }
+}
+router.get('/call/:slug', (req, res, next) => renderCallTypePage(req, res, next, 'en'));
+router.get('/am/call/:slug', (req, res, next) => renderCallTypePage(req, res, next, 'am'));
 
 module.exports = router;

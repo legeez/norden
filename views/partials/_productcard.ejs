@@ -1,6 +1,6 @@
 <article class="prod-card">
   <a class="file-tile" href="<%= prefix %>/products/<%= p.slug %>" tabindex="-1" aria-hidden="true">
-    <% if (p.image) { %><img src="<%= p.image %>" alt="" loading="lazy" decoding="async"><% } %>
+    <% if (p.image) { %><img src="<%= p.image %>" alt="<%= lang === 'am' ? (p.image_alt_am || p.title_am || p.image_alt_en || p.title_en) : (p.image_alt_en || p.title_en) %>" loading="lazy" decoding="async"><% } %>
     <span class="ext"><%= p.file_type || 'FILE' %></span>
     <span class="cat" data-en><%= p.cat_en %></span><span class="cat" data-am><%= p.cat_am %></span>
   </a>

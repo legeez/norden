@@ -33,6 +33,7 @@
           <div><label>Description (English)</label><textarea name="desc_en" rows="5"><%= p.desc_en %></textarea></div>
           <div><label>Description (Amharic)</label><textarea name="desc_am" rows="5"><%= p.desc_am %></textarea></div>
         </div>
+        <%- include('_seo_fields', { item: p }) %>
         <div class="row2">
           <div>
             <label>Category</label>
@@ -53,6 +54,10 @@
             <% if (p.image) { %><img src="<%= p.image %>" class="thumb" style="margin-bottom:8px;" alt=""><% } %>
             <%- include('_dropzone', { name: 'image_file', kind: 'image', maxmb: 5, hint: 'PNG, JPG, WEBP or GIF, up to 5 MB', required: false }) %>
           </div>
+        </div>
+        <div class="lang-col">
+          <div><label>Cover image description for Google (English)</label><input type="text" name="image_alt_en" maxlength="160" value="<%= p.image_alt_en || '' %>" placeholder="e.g. Excel BOQ template for a building project"></div>
+          <div><label>Cover image description for Google (Amharic)</label><input type="text" name="image_alt_am" maxlength="160" value="<%= p.image_alt_am || '' %>"></div>
         </div>
         <label>Downloadable file</label>
         <p class="hint" style="margin-top:0;">Current: <strong><%= p.file_name || 'none uploaded' %></strong> <% if (p.file_type) { %>(<%= p.file_type %>)<% } %>. Choose a new file only if you want to replace it.</p>
@@ -82,6 +87,7 @@
           <div><label>Description (English)</label><textarea name="desc_en" rows="5"></textarea></div>
           <div><label>Description (Amharic)</label><textarea name="desc_am" rows="5"></textarea></div>
         </div>
+        <%- include('_seo_fields', { item: {} }) %>
         <div class="row2">
           <div>
             <label>Category</label>
@@ -99,6 +105,10 @@
         <%- include('_dropzone', { name: 'product_file', kind: 'file', maxmb: 15, hint: 'Excel, Word, PDF or ZIP, up to 15 MB', required: true }) %>
         <label>Cover image (optional)</label>
         <%- include('_dropzone', { name: 'image_file', kind: 'image', maxmb: 5, hint: 'PNG, JPG, WEBP or GIF, up to 5 MB', required: false }) %>
+        <div class="lang-col">
+          <div><label>Cover image description for Google (English)</label><input type="text" name="image_alt_en" maxlength="160" value="<%= '' %>" placeholder="e.g. Excel BOQ template for a building project"></div>
+          <div><label>Cover image description for Google (Amharic)</label><input type="text" name="image_alt_am" maxlength="160" value="<%= '' %>"></div>
+        </div>
         <button type="submit" class="btn btn-primary" style="margin-top:10px;">Add Product</button>
       </form>
     </div>

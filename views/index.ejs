@@ -117,7 +117,7 @@
     <div class="about-grid">
       <div class="about-figure">
         <% if (content.about_image.en) { %>
-          <img src="<%= content.about_image.en %>" alt="<%= content.about_title.en %>" loading="lazy" decoding="async">
+          <img src="<%= content.about_image.en %>" alt="<%= lang === 'am' ? (content.about_title.am || content.about_title.en) : content.about_title.en %>" loading="lazy" decoding="async">
         <% } else { %>
           <div class="cap" data-en>[ Project photo — add one in the admin panel ]</div>
           <div class="cap" data-am>[ የፕሮጀክት ፎቶ — ከአስተዳደር ፓነል ይጨምሩ ]</div>
@@ -195,7 +195,7 @@
           <li>
             <span class="tick" aria-hidden="true"></span>
             <div>
-              <strong data-en><%= c.title_en %></strong><strong data-am><%= c.title_am %></strong>
+              <a class="ch-link" href="<%= prefix %>/call/<%= c.slug %>"><strong data-en><%= c.title_en %></strong><strong data-am><%= c.title_am %></strong></a>
               <% if (c.desc_en) { %><p data-en><%= c.desc_en %></p><p data-am><%= c.desc_am %></p><% } %>
             </div>
           </li>
@@ -306,7 +306,7 @@
       <% } %>
       <% gallery.forEach(function(g){ %>
       <div class="proj-tile">
-        <img src="<%= g.image %>" alt="<%= g.caption_en || (content.company_name.en + ' project') %>" loading="lazy" decoding="async">
+        <img src="<%= g.image %>" alt="<%= lang === 'am' ? (g.alt_am || g.caption_am || g.alt_en || g.caption_en || (content.company_name.am + ' ፕሮጀክት')) : (g.alt_en || g.caption_en || (content.company_name.en + ' project')) %>" loading="lazy" decoding="async">
         <% if (g.caption_en || g.caption_am) { %>
           <span class="cap" data-en><%= g.caption_en %></span>
           <span class="cap" data-am><%= g.caption_am %></span>

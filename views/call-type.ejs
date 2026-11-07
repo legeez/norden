@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
+      <a href="<%= prefix %>/call"><span data-en>Book a call</span><span data-am>ጥሪ ያስይዙ</span></a><span class="sep">/</span>
+      <span aria-current="page"><span data-en><%= cat.title_en %></span><span data-am><%= cat.title_am || cat.title_en %></span></span>
+    </nav>
+    <h1 data-en><%= cat.title_en %></h1>
+    <h1 data-am><%= cat.title_am || cat.title_en %></h1>
+    <% if (cat.desc_en) { %>
+    <p class="lead" data-en><%= cat.desc_en %></p>
+    <p class="lead" data-am><%= cat.desc_am || cat.desc_en %></p>
+    <% } %>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap pd-grid">
+    <div class="pd-main">
+      <% if (paras.length) { %>
+      <div class="rich">
+        <% paras.forEach(function(p){ %><p><%= p %></p>
+        <% }) %>
+      </div>
+      <% } %>
+
+      <h2 style="margin-top:32px;"><span data-en>How it works</span><span data-am>እንዴት እንደሚሰራ</span></h2>
+      <ol class="ct-steps">
+        <li><strong data-en>Choose live or scheduled</strong><strong data-am>ቀጥታ ወይም ቀጠሮ ይምረጡ</strong><p data-en>Talk to us right now, or pick a day and time that suits you.</p><p data-am>አሁኑኑ ያውሩን፣ ወይም የሚመችዎትን ቀን እና ሰዓት ይምረጡ።</p></li>
+        <li><strong data-en>Pay securely with Chapa</strong><strong data-am>በChapa ደህንነቱ የተጠበቀ ክፍያ</strong><p data-en>Your booking is confirmed as soon as the payment goes through.</p><p data-am>ክፍያው እንደተጠናቀቀ ቀጠሮዎ ይረጋገጣል።</p></li>
+        <li><strong data-en>Speak to our expert</strong><strong data-am>ከባለሙያችን ጋር ይወያዩ</strong><p data-en>By phone or WhatsApp, in English or Amharic.</p><p data-am>በስልክ ወይም በዋትስአፕ፣ በእንግሊዝኛ ወይም በአማርኛ።</p></li>
+      </ol>
+
+      <% if (others.length) { %>
+      <h2 style="margin-top:32px;"><span data-en>Other things we can help with</span><span data-am>ሌሎች የምንረዳባቸው ጉዳዮች</span></h2>
+      <ul class="ct-others">
+        <% others.forEach(function(o){ %>
+        <li><a href="<%= prefix %>/call/<%= o.slug %>"><strong data-en><%= o.title_en %></strong><strong data-am><%= o.title_am || o.title_en %></strong><% if (o.desc_en) { %><span data-en><%= o.desc_en %></span><span data-am><%= o.desc_am || o.desc_en %></span><% } %></a></li>
+        <% }) %>
+      </ul>
+      <% } %>
+    </div>
+
+    <aside class="buy-box">
+      <span class="chip dark"><span data-en>Phone and WhatsApp</span><span data-am>ስልክ እና ዋትስአፕ</span></span>
+      <ul style="margin-top:16px;">
+        <% if (cfg.live.on) { %><li><span data-en>Live call: <strong><%= terms.live.price.toLocaleString('en-US') %> <%= cfg.currency %></strong>, about <%= terms.live.minutes %> minutes</span><span data-am>ቀጥታ ጥሪ፦ <strong><%= terms.live.price.toLocaleString('en-US') %> <%= cfg.currency %></strong>፣ ወደ <%= terms.live.minutes %> ደቂቃ</span></li><% } %>
+        <% if (cfg.scheduled.on) { %><li><span data-en>Scheduled call: <strong><%= terms.scheduled.price.toLocaleString('en-US') %> <%= cfg.currency %></strong>, about <%= cfg.scheduled.minutes %> minutes</span><span data-am>ቀጠሮ ያለው ጥሪ፦ <strong><%= terms.scheduled.price.toLocaleString('en-US') %> <%= cfg.currency %></strong>፣ ወደ <%= cfg.scheduled.minutes %> ደቂቃ</span></li><% } %>
+        <li><span data-en>Pay securely with Chapa</span><span data-am>በChapa ደህንነቱ የተጠበቀ ክፍያ</span></li>
+      </ul>
+      <a class="btn btn-primary" href="<%= prefix %>/call?type=<%= cat.slug %>#call-form"><span data-en>Book this call</span><span data-am>ይህን ጥሪ ያስይዙ</span></a>
+    </aside>
+  </div>
+</section>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+</body>
+</html>

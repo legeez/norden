@@ -23,6 +23,9 @@
 <section class="band">
   <div class="wrap pd-grid">
     <div class="pd-main">
+      <% if (product.image) { %>
+      <figure class="pd-figure"><img src="<%= product.image %>" alt="<%= lang === 'am' ? (product.image_alt_am || product.title_am || product.image_alt_en || product.title_en) : (product.image_alt_en || product.title_en) %>" loading="eager" decoding="async"></figure>
+      <% } %>
       <h2><span data-en>About this file</span><span data-am>ስለዚህ ፋይል</span></h2>
       <p class="rich" data-en><%= product.desc_en %></p>
       <p class="rich" data-am><%= product.desc_am || product.desc_en %></p>

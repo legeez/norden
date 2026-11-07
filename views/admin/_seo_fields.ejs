@@ -1,0 +1,25 @@
+<details class="seo-box" <%= (item.seo_title_en || item.seo_title_am || item.seo_desc_en || item.seo_desc_am) ? 'open' : '' %>>
+  <summary>Google search text (SEO) <span class="opt">optional</span></summary>
+  <p class="seo-help">This is what people read on Google before they click. Leave it empty and the website writes a good one for you. Use the words customers type into Google.</p>
+  <div class="lang-col">
+    <div><label>Google title (English)</label><input type="text" name="seo_title_en" maxlength="120" data-max="60" value="<%= item.seo_title_en || '' %>"><div class="seo-count"></div></div>
+    <div><label>Google title (Amharic)</label><input type="text" name="seo_title_am" maxlength="120" data-max="60" value="<%= item.seo_title_am || '' %>"><div class="seo-count"></div></div>
+  </div>
+  <div class="lang-col">
+    <div><label>Google description (English)</label><textarea name="seo_desc_en" maxlength="320" data-max="155" rows="3"><%= item.seo_desc_en || '' %></textarea><div class="seo-count"></div></div>
+    <div><label>Google description (Amharic)</label><textarea name="seo_desc_am" maxlength="320" data-max="155" rows="3"><%= item.seo_desc_am || '' %></textarea><div class="seo-count"></div></div>
+  </div>
+</details>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (window.__seoCountersReady) return; window.__seoCountersReady = true;
+  function update(el) {
+    var c = el.parentNode.querySelector('.seo-count'); if (!c) return;
+    var n = el.value.length, m = Number(el.getAttribute('data-max'));
+    c.textContent = n + ' of about ' + m + ' characters' + (n > m ? ' (a bit long, Google may cut it)' : '');
+    c.className = 'seo-count' + (n > m ? ' over' : n > 0 ? ' ok' : '');
+  }
+  document.addEventListener('input', function (e) { if (e.target.getAttribute && e.target.getAttribute('data-max')) update(e.target); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-max]'), update);
+});
+</script>

@@ -11,7 +11,7 @@
   <%- include('_sidebar', { active: 'call-types' }) %>
   <div class="admin-main">
     <h1>Call Types</h1>
-    <p class="admin-sub">The topics customers choose from when they book a call (for example: process and licensing, technical questions, material and labor costs). Leave a price empty to use the default price from Call Settings.</p>
+    <p class="admin-sub">The topics customers choose from when they book a call (for example: process and licensing, technical questions, material and labor costs). Each call type gets its own page on your website (for example /call/technical-construction-questions) so Google can find it. Leave a price empty to use the default price from Call Settings.</p>
 
     <% if (!ready) { %><div class="error">The call tables do not exist yet. Run <code>migrations/003_call_service.sql</code> in the Supabase SQL Editor.</div><% } %>
     <% if (saved) { %><div class="notice">Saved.</div><% } %>
@@ -27,6 +27,11 @@
           <div><label>Short description (English)</label><textarea name="desc_en"><%= t.desc_en %></textarea></div>
           <div><label>Short description (Amharic)</label><textarea name="desc_am"><%= t.desc_am %></textarea></div>
         </div>
+        <div class="lang-col">
+          <div><label>Page text (English)</label><textarea name="body_en" rows="6" placeholder="Explain what you help with, who it is for and what the customer gets. 100 to 300 words works best for Google."><%= t.body_en || '' %></textarea></div>
+          <div><label>Page text (Amharic)</label><textarea name="body_am" rows="6"><%= t.body_am || '' %></textarea></div>
+        </div>
+        <%- include('_seo_fields', { item: t }) %>
         <div class="row3">
           <div><label>Live call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="live_price" value="<%= t.live_price === null ? '' : t.live_price %>" placeholder="default <%= defaults.live_price %>"></div>
           <div><label>Scheduled call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="scheduled_price" value="<%= t.scheduled_price === null ? '' : t.scheduled_price %>" placeholder="default <%= defaults.scheduled_price %>"></div>
@@ -56,6 +61,11 @@
           <div><label>Short description (English)</label><textarea name="desc_en"></textarea></div>
           <div><label>Short description (Amharic)</label><textarea name="desc_am"></textarea></div>
         </div>
+        <div class="lang-col">
+          <div><label>Page text (English)</label><textarea name="body_en" rows="6" placeholder="Explain what you help with, who it is for and what the customer gets. 100 to 300 words works best for Google."><%= {}.body_en || '' %></textarea></div>
+          <div><label>Page text (Amharic)</label><textarea name="body_am" rows="6"><%= {}.body_am || '' %></textarea></div>
+        </div>
+        <%- include('_seo_fields', { item: {} }) %>
         <div class="row3">
           <div><label>Live call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="live_price" placeholder="default <%= defaults.live_price %>"></div>
           <div><label>Scheduled call price (<%= currency %>)</label><input type="number" step="0.01" min="0" name="scheduled_price" placeholder="default <%= defaults.scheduled_price %>"></div>

@@ -99,6 +99,15 @@ router.post('/content', upload.single('about_image_file'), async (req, res, next
 });
 
 // ---------- Services (with prices used at checkout) ----------
+// Google title / description typed in the admin panel (all optional)
+function seoFields(body) {
+  const out = {};
+  ['seo_title_en', 'seo_title_am', 'seo_desc_en', 'seo_desc_am', 'image_alt_en', 'image_alt_am'].forEach(k => {
+    if (body[k] !== undefined) out[k] = String(body[k] || '').trim().slice(0, k.startsWith('image_alt') ? 160 : k.indexOf('title') > 0 ? 120 : 320);
+  });
+  return out;
+}
+
 router.get('/services', async (req, res, next) => {
   try {
     const services = await store.listServices();
@@ -110,7 +119,7 @@ router.post('/services', upload.single('image_file'), async (req, res, next) => 
   try {
     const { title_en, title_am, desc_en, desc_am, price, currency } = req.body;
     const image = req.file ? await uploadImage(req.file, 'services') : '';
-    await store.createService({ title_en, title_am, desc_en, desc_am, price: Number(price) || 0, currency, image });
+    await store.createService({ title_en, title_am, desc_en, desc_am, price: Number(price) || 0, currency, image, ...seoFields(req.body) });
     res.redirect('/admin/services');
   } catch (err) { next(err); }
 });
@@ -123,7 +132,8 @@ router.post('/services/:id/update', upload.single('image_file'), async (req, res
       price: Number(price) || 0,
       currency: currency || 'ETB',
       order: Number(order) || undefined,
-      active: req.body.active === 'on'
+      active: req.body.active === 'on',
+      ...seoFields(req.body)
     };
     if (req.file) fields.image = await uploadImage(req.file, 'services');
     await store.updateService(Number(req.params.id), fields);
@@ -183,7 +193,7 @@ router.post('/blocks/:section/:id/delete', async (req, res, next) => {
 router.get('/gallery', async (req, res, next) => {
   try {
     const items = await store.listGallery();
-    res.send(render('admin/gallery', { items }));
+    res.send(render('admin/gallery', { items, saved: req.query.saved === '1' }));
   } catch (err) { next(err); }
 });
 
@@ -191,8 +201,18 @@ router.post('/gallery', upload.single('image_file'), async (req, res, next) => {
   try {
     if (!req.file) return res.redirect('/admin/gallery');
     const image = await uploadImage(req.file, 'gallery');
-    await store.addGalleryItem({ image, caption_en: req.body.caption_en, caption_am: req.body.caption_am });
+    await store.addGalleryItem({ image, caption_en: req.body.caption_en, caption_am: req.body.caption_am, alt_en: req.body.alt_en, alt_am: req.body.alt_am });
     res.redirect('/admin/gallery');
+  } catch (err) { next(err); }
+});
+
+router.post('/gallery/:id/update', async (req, res, next) => {
+  try {
+    const cut = (v) => String(v || '').trim().slice(0, 160);
+    await store.updateGalleryItem(Number(req.params.id), {
+      caption_en: cut(req.body.caption_en), caption_am: cut(req.body.caption_am), alt_en: cut(req.body.alt_en), alt_am: cut(req.body.alt_am)
+    });
+    res.redirect('/admin/gallery?saved=1');
   } catch (err) { next(err); }
 });
 
@@ -227,7 +247,8 @@ function productFields(body) {
     title_en: (body.title_en || '').trim(), title_am: (body.title_am || '').trim(),
     desc_en: (body.desc_en || '').trim(), desc_am: (body.desc_am || '').trim(),
     price: Number(body.price) || 0,
-    currency: (body.currency || 'ETB').trim() || 'ETB'
+    currency: (body.currency || 'ETB').trim() || 'ETB',
+    ...seoFields(body)
   };
 }
 

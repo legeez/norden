@@ -72,7 +72,10 @@ function languageRouter(lang) {
       const page = seo.seoFor({
         req, lang, path: '/', title, description,
         image: content.about_image && content.about_image.en,
-        ld: [seo.organizationLd(ctx.base, content, lang, services), seo.websiteLd(ctx.base, content)]
+        ld: [
+          seo.organizationLd(ctx.base, content, lang, services), seo.websiteLd(ctx.base, content),
+          seo.howToLd(ctx.base, lang, process, isAm ? 'ከመጀመሪያ ጥሪ እስከ ፊርማ' : 'How we work: from first call to signed document', description, '/')
+        ]
       });
       res.set('Cache-Control', 'public, max-age=120');
       res.send(render('index', {
@@ -142,8 +145,8 @@ function languageRouter(lang) {
       ];
       const page = seo.seoFor({
         req, lang, path: '/products/' + product.slug,
-        title: `${ptitle} — ${isAm ? 'ያውርዱ' : 'Download'} | ${name}`,
-        description: pdesc || (isAm ? cat.blurb_am : cat.blurb_en),
+        title: seo.seoText(product, lang, 'title', `${ptitle} — ${isAm ? 'ያውርዱ' : 'Download'} | ${name}`),
+        description: seo.seoText(product, lang, 'desc', pdesc || (isAm ? cat.blurb_am : cat.blurb_en)),
         image: product.image, type: 'product',
         ld: [seo.productLd(ctx.base, lang, product, ptitle, pdesc), seo.breadcrumbLd(crumbs)]
       });
@@ -182,9 +185,12 @@ function languageRouter(lang) {
       ];
       const page = seo.seoFor({
         req, lang, path: '/services/' + service.slug,
-        title: isAm ? `${stitle} በአዲስ አበባ | ${name}` : `${stitle} in Addis Ababa | ${name}`,
-        description: sdesc,
-        ld: [seo.serviceLd(ctx.base, lang, service, stitle, sdesc), seo.breadcrumbLd(crumbs)]
+        title: seo.seoText(service, lang, 'title', isAm ? `${stitle} በአዲስ አበባ | ${name}` : `${stitle} in Addis Ababa | ${name}`),
+        description: seo.seoText(service, lang, 'desc', sdesc),
+        ld: [
+          seo.serviceLd(ctx.base, lang, service, stitle, sdesc), seo.breadcrumbLd(crumbs),
+          seo.howToLd(ctx.base, lang, process, isAm ? `${stitle} እንዴት እንደምንሰራ` : `How we deliver ${stitle}`, sdesc, '/services/' + service.slug)
+        ]
       });
       res.set('Cache-Control', 'public, max-age=120');
       res.send(render('service', { ...ctx, content, services: list, service, process, whyUs, products: decorate(products.slice(0, 3)), seo: page }));
@@ -223,26 +229,31 @@ function xmlEscape(s) {
 root.get('/sitemap.xml', async (req, res, next) => {
   try {
     const base = seo.baseUrl(req);
-    const [services, products] = await Promise.all([
+    const [services, products, callTypes, gallery] = await Promise.all([
       store.listServices({ activeOnly: true }),
-      store.listProductsSafe({ activeOnly: true })
+      store.listProductsSafe({ activeOnly: true }),
+      calls.listCategoriesSafe({ activeOnly: true }),
+      store.listGallery().catch(() => [])
     ]);
+    const abs = (u) => (/^https?:/i.test(u) ? u : base + (String(u).startsWith('/') ? '' : '/') + u);
     const pages = [
-      { path: '/', priority: '1.0', freq: 'weekly' },
+      { path: '/', priority: '1.0', freq: 'weekly', images: gallery.filter(g => g.image).map(g => ({ loc: abs(g.image), title: g.alt_en || g.caption_en || '' })) },
       { path: '/products', priority: '0.9', freq: 'weekly' },
-      { path: '/call', priority: '0.7', freq: 'monthly' },
+      { path: '/call', priority: '0.8', freq: 'monthly' },
+      ...callTypes.map(c => ({ path: '/call/' + (seo.slugify(c.title_en) || c.id), priority: '0.8', freq: 'monthly', lastmod: c.created_at })),
       ...withSlugs(services).map(s => ({ path: '/services/' + s.slug, priority: '0.8', freq: 'monthly' })),
-      ...products.map(p => ({ path: '/products/' + p.slug, priority: '0.8', freq: 'monthly', lastmod: p.created_at }))
+      ...products.map(p => ({ path: '/products/' + p.slug, priority: '0.8', freq: 'monthly', lastmod: p.created_at, images: p.image ? [{ loc: abs(p.image), title: p.image_alt_en || p.title_en }] : [] }))
     ];
     const urlEntry = (lang, p) => {
       const alts = seo.alternates(base, p.path)
         .map(a => `    <xhtml:link rel="alternate" hreflang="${a.hreflang}" href="${xmlEscape(a.href)}"/>`).join('\n');
       const lastmod = p.lastmod ? `\n    <lastmod>${new Date(p.lastmod).toISOString().slice(0, 10)}</lastmod>` : '';
-      return `  <url>\n    <loc>${xmlEscape(seo.localizedUrl(base, lang, p.path))}</loc>${lastmod}\n    <changefreq>${p.freq}</changefreq>\n    <priority>${p.priority}</priority>\n${alts}\n  </url>`;
+      const imgs = (p.images || []).map(i => `\n    <image:image><image:loc>${xmlEscape(i.loc)}</image:loc>${i.title ? `<image:title>${xmlEscape(i.title)}</image:title>` : ''}</image:image>`).join('');
+      return `  <url>\n    <loc>${xmlEscape(seo.localizedUrl(base, lang, p.path))}</loc>${lastmod}\n    <changefreq>${p.freq}</changefreq>\n    <priority>${p.priority}</priority>\n${alts}${imgs}\n  </url>`;
     };
     const body = pages.flatMap(p => [urlEntry('en', p), urlEntry('am', p)]).join('\n');
     res.type('application/xml').set('Cache-Control', 'public, max-age=3600').send(
-      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${body}\n</urlset>\n`
+      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${body}\n</urlset>\n`
     );
   } catch (err) { next(err); }
 });

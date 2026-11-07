@@ -13,6 +13,7 @@
     <h1>Project Gallery</h1>
     <p class="admin-sub">Photos shown in the "Recent Projects" section of your homepage.</p>
 
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
     <div class="card">
       <h2>Add a Photo</h2>
       <form method="POST" action="/admin/gallery" enctype="multipart/form-data">
@@ -22,6 +23,11 @@
           <div><label>Caption (English)</label><input type="text" name="caption_en" placeholder="Project name + location"></div>
           <div><label>Caption (Amharic)</label><input type="text" name="caption_am"></div>
         </div>
+        <div class="lang-col">
+          <div><label>Photo description for Google (English)</label><input type="text" name="alt_en" maxlength="160" placeholder="What the photo shows and where"></div>
+          <div><label>Photo description for Google (Amharic)</label><input type="text" name="alt_am" maxlength="160"></div>
+        </div>
+        <p class="hint">Google cannot see pictures, it reads this description. Say what the photo shows and where, for example “Reinforced concrete slab of a 5-storey building in Bole, Addis Ababa”. Leave empty to use the caption.</p>
         <button type="submit" class="btn btn-primary">Upload</button>
       </form>
     </div>
@@ -29,19 +35,25 @@
     <div class="card">
       <h2>Current Photos</h2>
       <% if (items.length === 0) { %><p class="hint" style="margin-top:0;">No photos yet.</p><% } %>
-      <table>
-        <% items.forEach(function(g){ %>
-        <tr>
-          <td><img src="<%= g.image %>" class="thumb"></td>
-          <td><%= g.caption_en %></td>
-          <td>
-            <form method="POST" action="/admin/gallery/<%= g.id %>/delete" onsubmit="return confirm('Delete this photo?');">
-              <button type="submit" class="btn btn-danger">Delete</button>
-            </form>
-          </td>
-        </tr>
-        <% }) %>
-      </table>
+      <% items.forEach(function(g){ %>
+      <div class="photo-row">
+        <img src="<%= g.image %>" class="thumb" alt="<%= g.alt_en || g.caption_en || '' %>">
+        <form method="POST" action="/admin/gallery/<%= g.id %>/update" class="photo-form">
+          <div class="lang-col">
+            <div><label>Caption (English)</label><input type="text" name="caption_en" value="<%= g.caption_en %>"></div>
+            <div><label>Caption (Amharic)</label><input type="text" name="caption_am" value="<%= g.caption_am %>"></div>
+          </div>
+          <div class="lang-col">
+            <div><label>Description for Google (English)</label><input type="text" name="alt_en" maxlength="160" value="<%= g.alt_en || '' %>" placeholder="What the photo shows and where"></div>
+            <div><label>Description for Google (Amharic)</label><input type="text" name="alt_am" maxlength="160" value="<%= g.alt_am || '' %>"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+        <form method="POST" action="/admin/gallery/<%= g.id %>/delete" onsubmit="return confirm('Delete this photo?');">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+      <% }) %>
     </div>
   </div>
 </div>

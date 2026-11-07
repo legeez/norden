@@ -204,3 +204,17 @@ All times are Addis Ababa time on the standard clock.
 ## Look and feel
 
 The public site uses the **Light and clean** palette: white header and pages, light peach hero banners, a dark footer, and the orange accent (`#FF5A1F`). All colors are variables at the top of `public/css/style.css` (`--ink`, `--paper`, `--paper-2`, `--peach`, `--orange`...), so the palette can be changed in one place. The admin panel keeps its own styles in `public/css/admin.css`.
+
+## SEO (Google)
+
+Every public page already has a unique title and description, a canonical address, English and Amharic (`hreflang`) alternates, social-sharing tags, structured data (`schema.org`) and an entry in `/sitemap.xml`.
+
+What each admin area controls:
+
+- **Services & Prices, Products & Files, Call Types:** each form has a **Google search text (SEO)** box (optional). Type a Google title (about 60 characters) and description (about 155) in English and Amharic; if left empty, the website writes one automatically. Services and products keep their own pages (`/services/...`, `/products/...`).
+- **Call Types:** each call type has its own page, `/call/<call-type>` (and `/am/call/...`), with the **Page text** you write, prices, how it works and links to the other call types. It is listed in the sitemap and linked from the home page.
+- **Page Sections:** the "how we work" steps are published to Google as a step-by-step guide on the home page and on every service page.
+
+Setup: run `migrations/004_seo.sql` once in the Supabase SQL Editor (the site keeps working without it, but the SEO boxes only save after it). After deploying, add your site in Google Search Console and submit `https://YOUR-SITE/sitemap.xml`. Set `SITE_URL` to your real domain once you have one.
+
+**Image descriptions (alt text):** Project Gallery photos and product cover images have a **description for Google** (English and Amharic). Google cannot see pictures, so it reads this text to understand the photo and to show it in Google Images. Describe what the photo shows and where. Photos and product images are also listed in `/sitemap.xml`. These fields are part of `migrations/004_seo.sql`: run it again if you ran it earlier (it is safe to repeat).
