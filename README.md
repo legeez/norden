@@ -218,3 +218,12 @@ What each admin area controls:
 Setup: run `migrations/004_seo.sql` once in the Supabase SQL Editor (the site keeps working without it, but the SEO boxes only save after it). After deploying, add your site in Google Search Console and submit `https://YOUR-SITE/sitemap.xml`. Set `SITE_URL` to your real domain once you have one.
 
 **Image descriptions (alt text):** Project Gallery photos and product cover images have a **description for Google** (English and Amharic). Google cannot see pictures, so it reads this text to understand the photo and to show it in Google Images. Describe what the photo shows and where. Photos and product images are also listed in `/sitemap.xml`. These fields are part of `migrations/004_seo.sql`: run it again if you ran it earlier (it is safe to repeat).
+
+## Menus and page builder
+
+Run `migrations/005_page_builder.sql` once in the Supabase SQL Editor. Until you do, the website keeps its current menu and page order and nothing breaks.
+
+- **Admin → Menus:** edit the top menu, the orange menu button and the footer links. Add, rename (English and Amharic), hide, remove, choose where each link goes (a section of the home page, a page, a service, a call type, a page you built, or any address) and drag rows (or use the arrows) to change the order. The order saves by itself.
+- **Admin → Pages → Home page:** the sections of the home page as a list. Drag to reorder, **Hide** to take a section off the page without losing it, **Remove** to delete it (you can add it back), and **Add a section** to bring back a built-in section or create a new one: *Text block*, *Image and text*, *Cards*, *Call to action banner* or *Questions and answers*, all in English and Amharic.
+- **Admin → Pages → Create a new page:** make your own pages (address `/p/your-page`) from the same sections. They get their own Google title and description, appear in `sitemap.xml`, and can be linked from the Menus page.
+- The text of the built-in sections (hero, about, services, templates, projects, contact...) is still edited where it always was (Site Content, Services & Prices, Products & Files, Page Sections, Project Gallery). The builder only decides whether they show and in which order.

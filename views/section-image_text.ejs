@@ -1,0 +1,18 @@
+<% var c = section.config || {}; var enParas = String(c.body_en || '').split(/\n\s*\n/).map(function(x){ return x.trim(); }).filter(Boolean); var amParas = String(c.body_am || c.body_en || '').split(/\n\s*\n/).map(function(x){ return x.trim(); }).filter(Boolean); %>
+<section class="cs cs-image <%= c.side === 'left' ? 'img-left' : '' %>" id="<%= section.anchor %>">
+  <div class="wrap cs-image-grid">
+    <div class="cs-image-text">
+      <% if (c.title_en) { %><h2 data-en><%= c.title_en %></h2><h2 data-am><%= c.title_am || c.title_en %></h2><% } %>
+      <div class="rich" data-en><% enParas.forEach(function(p){ %><p><%= p %></p><% }) %></div>
+      <div class="rich" data-am><% amParas.forEach(function(p){ %><p><%= p %></p><% }) %></div>
+      <% if (c.btn_label_en && c.btn_url_href) { %>
+      <p><a class="btn btn-primary" href="<%= c.btn_url_href %>"><span data-en><%= c.btn_label_en %></span><span data-am><%= c.btn_label_am || c.btn_label_en %></span></a></p>
+      <% } %>
+    </div>
+    <div class="cs-image-pic">
+      <% if (c.image) { %>
+      <img src="<%= c.image %>" alt="<%= lang === 'am' ? (c.image_alt_am || c.title_am || c.image_alt_en || c.title_en || '') : (c.image_alt_en || c.title_en || '') %>" loading="lazy" decoding="async">
+      <% } else { %><div class="cs-image-empty" aria-hidden="true"></div><% } %>
+    </div>
+  </div>
+</section>

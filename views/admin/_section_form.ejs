@@ -1,0 +1,24 @@
+<form method="POST" action="/admin/sections/<%= s.id %>/update" enctype="multipart/form-data" class="sec-form">
+  <% def.fields.forEach(function(f){ %>
+    <% if (f.lang) { %>
+    <div class="lang-col">
+      <div><label><%= f.label %> (English)</label><% if (f.type === 'textarea') { %><textarea name="<%= f.k %>_en" rows="4" maxlength="<%= f.max %>"><%= s.config[f.k + '_en'] || '' %></textarea><% } else { %><input type="text" name="<%= f.k %>_en" maxlength="<%= f.max %>" value="<%= s.config[f.k + '_en'] || '' %>"><% } %></div>
+      <div><label><%= f.label %> (Amharic)</label><% if (f.type === 'textarea') { %><textarea name="<%= f.k %>_am" rows="4" maxlength="<%= f.max %>"><%= s.config[f.k + '_am'] || '' %></textarea><% } else { %><input type="text" name="<%= f.k %>_am" maxlength="<%= f.max %>" value="<%= s.config[f.k + '_am'] || '' %>"><% } %></div>
+    </div>
+    <% } else if (f.type === 'select') { %>
+    <label><%= f.label %></label>
+    <select name="<%= f.k %>">
+      <% f.options.forEach(function(o){ %><option value="<%= o %>" <%= (s.config[f.k] || f.def) === o ? 'selected' : '' %>><%= o.charAt(0).toUpperCase() + o.slice(1) %></option><% }) %>
+    </select>
+    <% } else if (f.type === 'image') { %>
+    <label><%= f.label %></label>
+    <% if (s.config[f.k]) { %><img src="<%= s.config[f.k] %>" alt="" class="thumb" style="width:160px;height:110px;object-fit:cover;margin-bottom:10px;display:block;"><% } %>
+    <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+    <p class="hint">PNG, JPG, WEBP or GIF, up to 5 MB. Leave empty to keep the current image.</p>
+    <% } else if (f.type === 'url') { %>
+    <label><%= f.label %></label>
+    <input type="text" name="<%= f.k %>" value="<%= s.config[f.k] || '' %>" placeholder="/#contact, /call, /products or https://…">
+    <% } %>
+  <% }) %>
+  <button type="submit" class="btn btn-primary">Save section</button>
+</form>

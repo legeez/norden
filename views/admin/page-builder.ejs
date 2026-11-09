@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page builder — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'pages' }) %>
+  <div class="admin-main">
+    <p class="crumb"><a href="/admin/pages">&larr; All pages</a></p>
+    <h1><%= isHome ? 'Home page' : pageRow.title_en %></h1>
+    <p class="admin-sub">Drag a section by its handle (or use the arrows) to change the order. Use <strong>Hide</strong> to take it off the page without losing it, or <strong>Remove</strong> to delete it. <a href="<%= isHome ? '/' : '/p/' + slug %>" target="_blank" rel="noopener" style="text-decoration:underline;">View the page &rarr;</a></p>
+
+    <% if (!ready) { %><div class="error">The page builder tables do not exist yet. Run <code>migrations/005_page_builder.sql</code> in the Supabase SQL Editor.</div><% } %>
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
+
+    <div class="card">
+      <h2>Sections on this page</h2>
+      <% if (!sections.length) { %><p class="hint" style="margin:0;">This page has no sections yet. Add one below.</p><% } %>
+      <ul class="sortable sec-list" data-url="/admin/pages/<%= slug %>/reorder">
+        <% sections.forEach(function(s){ var bi = builtin[s.kind]; var def = kinds[s.kind]; %>
+        <li class="sec-row <%= s.visible ? '' : 'is-hidden' %>" data-id="<%= s.id %>" id="section-<%= s.id %>">
+          <div class="sec-head">
+            <span class="handle" title="Drag to move">&#10303;</span>
+            <button type="button" class="mv" data-move="up" title="Move up" aria-label="Move up">&#9650;</button>
+            <button type="button" class="mv" data-move="down" title="Move down" aria-label="Move down">&#9660;</button>
+            <div class="sec-title">
+              <strong><%= bi ? bi.name : def.name %></strong>
+              <span class="hint" style="margin:0;"><%= bi ? bi.about : (s.config.title_en || def.about) %></span>
+            </div>
+            <span class="badge badge-<%= s.visible ? 'paid' : 'pending' %>"><%= s.visible ? 'Shown' : 'Hidden' %></span>
+            <form method="POST" action="/admin/sections/<%= s.id %>/toggle"><button type="submit" class="btn btn-outline"><%= s.visible ? 'Hide' : 'Show' %></button></form>
+            <form method="POST" action="/admin/sections/<%= s.id %>/delete" onsubmit="return confirm('Remove this section from the page?');"><button type="submit" class="btn btn-danger">Remove</button></form>
+          </div>
+          <% if (bi) { %>
+          <p class="hint sec-note">This section&rsquo;s text and pictures come from <% if (bi.edit) { %><a href="<%= bi.edit %>" style="text-decoration:underline;"><%= bi.editLabel %></a><% } else { %>the website itself<% } %>.</p>
+          <% } else { %>
+          <details class="sec-edit" <%= editing === String(s.id) ? 'open' : '' %>>
+            <summary>Edit this section</summary>
+            <%- include('_section_form', { s: s, def: def }) %>
+          </details>
+          <% } %>
+        </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Add a section</h2>
+      <% if (available.length) { %>
+      <p class="hint" style="margin-top:-6px;">Sections from your website</p>
+      <div class="palette">
+        <% available.forEach(function(k){ %>
+        <form method="POST" action="/admin/pages/<%= slug %>/sections"><input type="hidden" name="kind" value="<%= k %>"><button type="submit" class="pal"><strong><%= builtin[k].name %></strong><span><%= builtin[k].about %></span></button></form>
+        <% }) %>
+      </div>
+      <% } %>
+      <p class="hint" style="margin-top:18px;">New sections you write yourself</p>
+      <div class="palette">
+        <% Object.keys(kinds).forEach(function(k){ %>
+        <form method="POST" action="/admin/pages/<%= slug %>/sections"><input type="hidden" name="kind" value="<%= k %>"><button type="submit" class="pal"><strong>+ <%= kinds[k].name %></strong><span><%= kinds[k].about %></span></button></form>
+        <% }) %>
+      </div>
+    </div>
+
+    <% if (!isHome) { %>
+    <div class="card">
+      <h2>Page settings</h2>
+      <form method="POST" action="/admin/pages/<%= slug %>/update">
+        <div class="lang-col">
+          <div><label>Page title (English)</label><input type="text" name="title_en" value="<%= pageRow.title_en %>" required></div>
+          <div><label>Page title (Amharic)</label><input type="text" name="title_am" value="<%= pageRow.title_am %>"></div>
+        </div>
+        <%- include('_seo_fields', { item: pageRow }) %>
+        <label class="check"><input type="checkbox" name="active" <%= pageRow.active ? 'checked' : '' %>> Published (visible to visitors)</label>
+        <div class="btn-row">
+          <button type="submit" class="btn btn-primary">Save page</button>
+          <button type="submit" class="btn btn-danger" formaction="/admin/pages/<%= slug %>/delete" formnovalidate onclick="return confirm('Delete this whole page and its sections?');">Delete page</button>
+        </div>
+      </form>
+    </div>
+    <% } %>
+  </div>
+</div>
+<%- include('_dnd') %>
+</body>
+</html>

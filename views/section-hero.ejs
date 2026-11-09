@@ -1,0 +1,83 @@
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">
+        <span data-en><%= content.hero_eyebrow.en %></span>
+        <span data-am><%= content.hero_eyebrow.am %></span>
+      </div>
+      <h1 data-en><%= content.hero_title.en %></h1>
+      <h1 data-am class="block"><%= content.hero_title.am %></h1>
+      <p class="lead" data-en><%= content.hero_subtitle.en %></p>
+      <p class="lead" data-am><%= content.hero_subtitle.am %></p>
+      <div class="hero-ctas">
+        <a href="#services" class="btn btn-primary">
+          <span data-en>Get a Free Estimate</span>
+          <span data-am>ነጻ ግምት ያግኙ</span>
+        </a>
+        <a href="<%= prefix %>/products" class="btn btn-ghost">
+          <span data-en>Download Templates</span>
+          <span data-am>ቅጾችን ያውርዱ</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="boq-card">
+      <div class="boq-head">
+        <div>
+          <div class="tag" data-en>LIVE SAMPLE · BILL OF QUANTITIES</div>
+          <div class="tag" data-am>ናሙና · የመጠን ዝርዝር (BOQ)</div>
+          <div class="title" data-en>Ground Floor — Substructure</div>
+          <div class="title" data-am>የመሬት ወለል — መሰረት</div>
+        </div>
+        <div class="status" data-en>DRAFT No. 003</div>
+        <div class="status" data-am>ረቂቅ ቁ. 003</div>
+      </div>
+      <table class="boq-table">
+        <thead>
+          <tr>
+            <th data-en>Item</th><th data-am>እቃ</th>
+            <th data-en>Description</th><th data-am>መግለጫ</th>
+            <th data-en>Qty</th><th data-am>ብዛት</th>
+            <th data-en>Unit</th><th data-am>ክፍል</th>
+            <th class="amt" data-en>Amount (ETB)</th><th class="amt" data-am>መጠን (ብር)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01</td>
+            <td><span data-en>Site clearance &amp; excavation</span><span data-am>ቦታ ማጽዳት እና ቁፋሮ</span></td>
+            <td class="count-amt" data-target="412">412</td>
+            <td>m³</td>
+            <td class="amt count-amt" data-target="185400">185,400</td>
+          </tr>
+          <tr>
+            <td>02</td>
+            <td><span data-en>C-25 foundation concrete</span><span data-am>C-25 የመሰረት ኮንክሪት</span></td>
+            <td class="count-amt" data-target="96">96</td>
+            <td>m³</td>
+            <td class="amt count-amt" data-target="1248000">1,248,000</td>
+          </tr>
+          <tr>
+            <td>03</td>
+            <td><span data-en>Reinforcement steel, Ø12–20</span><span data-am>ብረት ማጠናከሪያ Ø12–20</span></td>
+            <td class="count-amt" data-target="8.4">8.4</td>
+            <td>ton</td>
+            <td class="amt count-amt" data-target="672000">672,000</td>
+          </tr>
+          <tr>
+            <td>04</td>
+            <td><span data-en>Masonry block wall, 20cm</span><span data-am>ብሎኬት ግድግዳ 20ሳ.ሜ</span></td>
+            <td class="count-amt" data-target="210">210</td>
+            <td>m²</td>
+            <td class="amt count-amt" data-target="294000">294,000</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="boq-total">
+        <span class="label" data-en>Estimated Subtotal</span>
+        <span class="label" data-am>ግምት ድምር</span>
+        <span class="value">ETB <span class="count-amt" data-target="2399400">2,399,400</span></span>
+      </div>
+    </div>
+  </div>
+</section>

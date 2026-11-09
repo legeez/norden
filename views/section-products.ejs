@@ -1,0 +1,24 @@
+<section class="products" id="templates">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>DOWNLOADS</span><span data-am>ማውረጃዎች</span></div>
+      <h2 data-en>BOQ, Cost &amp; Contract Templates</h2>
+      <h2 data-am>የBOQ፣ የወጪ እና የውል ቅጾች</h2>
+      <p class="lead" data-en>Excel and Word files we use ourselves. Pay with Chapa and download straight away.</p>
+      <p class="lead" data-am>እኛ ራሳችን የምንጠቀምባቸው የExcel እና የWord ፋይሎች። በChapa ይክፈሉ እና ወዲያውኑ ያውርዱ።</p>
+    </div>
+    <% if (products.length === 0) { %>
+    <p class="empty-note" data-en>New templates are being added. Check back soon, or contact us for a custom BOQ or cost sheet.</p>
+    <p class="empty-note" data-am>አዳዲስ ቅጾች በመጨመር ላይ ናቸው። በቅርቡ ይመለሱ፣ ወይም ለብጁ BOQ ወይም የወጪ ሉህ ያግኙን።</p>
+    <% } else { %>
+    <div class="prod-grid">
+      <% products.forEach(function(p){ %>
+      <%- include('partials/_productcard', { lang: lang, prefix: prefix, p: p }) %>
+      <% }) %>
+    </div>
+    <div class="section-more">
+      <a class="btn btn-outline" href="<%= prefix %>/products"><span data-en>See all templates</span><span data-am>ሁሉንም ቅጾች ይመልከቱ</span></a>
+    </div>
+    <% } %>
+  </div>
+</section>

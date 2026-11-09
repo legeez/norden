@@ -1,0 +1,14 @@
+<% var c = section.config || {}; var nums = [1,2,3,4,5,6,7,8].filter(function(i){ return c['q' + i + '_en'] && c['a' + i + '_en']; }); %>
+<section class="cs cs-faq" id="<%= section.anchor %>">
+  <div class="wrap">
+    <div class="cs-narrow">
+      <% if (c.title_en) { %><h2 data-en><%= c.title_en %></h2><h2 data-am><%= c.title_am || c.title_en %></h2><% } %>
+      <% nums.forEach(function(i){ %>
+      <details class="cs-q">
+        <summary><span data-en><%= c['q' + i + '_en'] %></span><span data-am><%= c['q' + i + '_am'] || c['q' + i + '_en'] %></span></summary>
+        <p data-en><%= c['a' + i + '_en'] %></p><p data-am><%= c['a' + i + '_am'] || c['a' + i + '_en'] %></p>
+      </details>
+      <% }) %>
+    </div>
+  </div>
+</section>

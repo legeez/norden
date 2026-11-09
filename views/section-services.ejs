@@ -1,0 +1,33 @@
+<section class="services" id="services">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>WHAT WE OFFER</span><span data-am>የምንሰጠው አገልግሎት</span></div>
+      <h2 data-en>Professional Services</h2>
+      <h2 data-am>ሙያዊ አገልግሎቶች</h2>
+      <p class="lead" data-en>Five services that follow the real life of a project, from a stack of drawings to a signed-off payment.</p>
+      <p class="lead" data-am>ከንድፍ ወረቀቶች እስከ ተፈራርሞ ወደ ተቀመጠ ክፍያ ድረስ ፕሮጀክትን የሚከተሉ አገልግሎቶች።</p>
+    </div>
+
+    <div class="svc-grid">
+      <% services.forEach(function(s, i){ %>
+      <div class="svc-card">
+        <span class="num"><%= String(i+1).padStart(2,'0') %> / <%= String(services.length).padStart(2,'0') %></span>
+        <h3><a href="<%= prefix %>/services/<%= s.slug %>"><span data-en><%= s.title_en %></span><span data-am><%= s.title_am || s.title_en %></span></a></h3>
+        <p data-en><%= s.desc_en %></p>
+        <p data-am><%= s.desc_am || s.desc_en %></p>
+        <div class="price"><span data-en>From </span><span data-am>ከ</span><%= s.price.toLocaleString('en-US') %> <%= s.currency %></div>
+        <div class="svc-actions">
+          <a class="btn btn-primary" href="/checkout/<%= s.id %>">
+            <span data-en>Buy Now</span>
+            <span data-am>ይግዙ</span>
+          </a>
+          <a class="more" href="<%= prefix %>/services/<%= s.slug %>">
+            <span data-en>Details</span>
+            <span data-am>ዝርዝር</span>
+          </a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,23 @@
+<section class="projects" id="projects">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>SELECTED WORK</span><span data-am>የተመረጡ ስራዎች</span></div>
+      <h2 data-en>Recent Projects</h2>
+      <h2 data-am>የቅርብ ጊዜ ፕሮጀክቶች</h2>
+    </div>
+    <div class="proj-grid">
+      <% if (gallery.length === 0) { %>
+        <div class="proj-tile"><span data-en>[ Add project photos in the admin panel ]</span><span data-am>[ ከአስተዳደር ፓነል የፕሮጀክት ፎቶዎችን ይጨምሩ ]</span></div>
+      <% } %>
+      <% gallery.forEach(function(g){ %>
+      <div class="proj-tile">
+        <img src="<%= g.image %>" alt="<%= lang === 'am' ? (g.alt_am || g.caption_am || g.alt_en || g.caption_en || (content.company_name.am + ' ፕሮጀክት')) : (g.alt_en || g.caption_en || (content.company_name.en + ' project')) %>" loading="lazy" decoding="async">
+        <% if (g.caption_en || g.caption_am) { %>
+          <span class="cap" data-en><%= g.caption_en %></span>
+          <span class="cap" data-am><%= g.caption_am %></span>
+        <% } %>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>

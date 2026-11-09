@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pages — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'pages' }) %>
+  <div class="admin-main">
+    <h1>Pages</h1>
+    <p class="admin-sub">Build your pages from sections. Open a page to drag its sections into a new order, hide or remove them, or add new ones.</p>
+
+    <% if (!ready) { %><div class="error">The page builder tables do not exist yet. Run <code>migrations/005_page_builder.sql</code> in the Supabase SQL Editor. Until then your home page keeps its current order and you can not create new pages.</div><% } %>
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
+
+    <div class="card">
+      <div class="page-row">
+        <div><strong>Home page</strong><div class="hint" style="margin:2px 0 0;">/ &nbsp;·&nbsp; the main page of your website</div></div>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/admin/pages/home">Edit sections</a>
+          <a class="btn btn-outline" href="/" target="_blank" rel="noopener">View</a>
+        </div>
+      </div>
+      <% pages.forEach(function(p){ %>
+      <div class="page-row">
+        <div>
+          <strong><%= p.title_en %></strong> <span class="badge badge-<%= p.active ? 'paid' : 'pending' %>"><%= p.active ? 'Published' : 'Hidden' %></span>
+          <div class="hint" style="margin:2px 0 0;">/p/<%= p.slug %></div>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/admin/pages/<%= p.slug %>">Edit sections</a>
+          <a class="btn btn-outline" href="/p/<%= p.slug %>" target="_blank" rel="noopener">View</a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
+    <% if (ready) { %>
+    <div class="card">
+      <h2>Create a new page</h2>
+      <form method="POST" action="/admin/pages">
+        <div class="lang-col">
+          <div><label>Page title (English)</label><input type="text" name="title_en" required placeholder="e.g. Our Team"></div>
+          <div><label>Page title (Amharic)</label><input type="text" name="title_am"></div>
+        </div>
+        <label>Web address</label>
+        <input type="text" name="slug" placeholder="our-team (leave empty to create it from the title)">
+        <p class="hint">The page will be at <code>/p/our-team</code>. After creating it you can add sections and put it in your menu.</p>
+        <button type="submit" class="btn btn-primary">Create page</button>
+      </form>
+    </div>
+    <% } %>
+  </div>
+</div>
+</body>
+</html>

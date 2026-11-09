@@ -1,0 +1,30 @@
+<%
+  var known = false;
+  options.forEach(function(g){ g.items.forEach(function(o){ if (o.v === it.url) known = true; }); });
+%>
+<li class="menu-row" data-id="<%= it.id %>">
+  <form method="POST" action="/admin/menus/<%= it.id %>/update">
+    <div class="row-top">
+      <span class="handle" title="Drag to move">&#10303;</span>
+      <button type="button" class="mv" data-move="up" title="Move up" aria-label="Move up">&#9650;</button>
+      <button type="button" class="mv" data-move="down" title="Move down" aria-label="Move down">&#9660;</button>
+      <input type="text" name="label_en" value="<%= it.label_en %>" placeholder="Name (English)" required>
+      <input type="text" name="label_am" value="<%= it.label_am %>" placeholder="Name (Amharic)">
+    </div>
+    <div class="row-bottom">
+      <select name="link" class="link-select">
+        <% options.forEach(function(g){ %>
+        <optgroup label="<%= g.group %>">
+          <% g.items.forEach(function(o){ %><option value="<%= o.v %>" <%= o.v === it.url ? 'selected' : '' %>><%= o.l %></option><% }) %>
+        </optgroup>
+        <% }) %>
+        <option value="__custom" <%= known ? '' : 'selected' %>>Another address…</option>
+      </select>
+      <input type="text" name="custom_url" class="custom-url" value="<%= known ? '' : it.url %>" placeholder="https://… or /page" <%= known ? 'hidden' : '' %>>
+      <label class="check"><input type="checkbox" name="new_tab" <%= it.new_tab ? 'checked' : '' %>> New tab</label>
+      <label class="check"><input type="checkbox" name="visible" <%= it.visible ? 'checked' : '' %>> Shown</label>
+      <button type="submit" class="btn btn-primary">Save</button>
+      <button type="submit" class="btn btn-danger" formaction="/admin/menus/<%= it.id %>/delete" formnovalidate onclick="return confirm('Remove this link?');">Remove</button>
+    </div>
+  </form>
+</li>

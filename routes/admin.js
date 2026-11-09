@@ -10,6 +10,8 @@ const { requireAdmin } = require('../lib/auth');
 const { render } = require('../lib/render');
 const calls = require('../lib/calls');
 const chapa = require('../lib/chapa');
+const menu = require('../lib/menu');
+const builder = require('../lib/pages');
 const notify = require('../lib/notify');
 
 const upload = multer({
@@ -409,6 +411,138 @@ router.post('/payments/test', async (req, res, next) => {
 
 router.post('/payments/remove', async (req, res, next) => {
   try { await chapa.removeSecretKey(); res.redirect('/admin/payments?saved=1'); } catch (err) { next(err); }
+});
+
+// ---------- Menus ----------
+function idList(body) { return String(body.ids || '').split(',').map(Number).filter(n => Number.isFinite(n) && n > 0); }
+
+// Every place a menu link can point to, grouped for the drop-down.
+async function linkOptions() {
+  const [customPages, services, callTypes, homeSections] = await Promise.all([
+    builder.listPagesSafe(), store.listServices({ activeOnly: true }).catch(() => []),
+    calls.listCategoriesSafe({ activeOnly: true }), builder.listSections('home').catch(() => [])
+  ]);
+  const slug = (t, id) => require('../lib/seo').slugify(t) || String(id);
+  const homeLinks = [{ v: '/', l: 'Home (top)' }];
+  const seen = new Set();
+  const add = (kind, label) => { const a = builder.BUILTIN[kind] && builder.BUILTIN[kind].anchor; if (a && !seen.has(a)) { seen.add(a); homeLinks.push({ v: '/#' + a, l: label }); } };
+  [['about', 'About the company'], ['services', 'Services'], ['call', 'Book a call (home section)'], ['products', 'Templates (home section)'], ['process', 'How we work'], ['why', 'Why choose us'], ['projects', 'Projects'], ['contact', 'Contact']].forEach(x => add(x[0], x[1]));
+  homeSections.filter(s => builder.KINDS[s.kind]).forEach(s => homeLinks.push({ v: '/#s-' + s.id, l: (builder.KINDS[s.kind].name) + (s.config && s.config.title_en ? ': ' + s.config.title_en : '') }));
+  const groups = [
+    { group: 'Home page', items: homeLinks },
+    { group: 'Pages', items: [{ v: '/products', l: 'Templates page (all downloads)' }, { v: '/call', l: 'Book a Call page' }].concat(customPages.filter(p => p.active).map(p => ({ v: '/p/' + p.slug, l: p.title_en }))) }
+  ];
+  if (callTypes.length) groups.push({ group: 'Call types', items: callTypes.map(c => ({ v: '/call/' + slug(c.title_en, c.id), l: c.title_en })) });
+  if (services.length) groups.push({ group: 'Services', items: services.map(s => ({ v: '/services/' + slug(s.title_en, s.id), l: s.title_en })) });
+  return groups;
+}
+
+function menuFields(body, visibleDefault) {
+  return {
+    label_en: body.label_en, label_am: body.label_am,
+    url: body.link === '__custom' ? body.custom_url : body.link,
+    new_tab: body.new_tab === 'on',
+    visible: visibleDefault ? true : body.visible === 'on'
+  };
+}
+
+router.get('/menus', async (req, res, next) => {
+  try {
+    const [menus, options] = await Promise.all([menu.loadForAdmin(), linkOptions()]);
+    res.send(render('admin/menus', { menus, ready: menus.ready, options, saved: req.query.saved === '1' }));
+  } catch (err) { next(err); }
+});
+router.post('/menus/reorder', async (req, res, next) => {
+  try { await menu.reorder(idList(req.body)); res.json({ ok: true }); } catch (err) { next(err); }
+});
+router.post('/menus/seed/:location', async (req, res, next) => {
+  try { await menu.seedDefaults(req.params.location); res.redirect('/admin/menus?saved=1'); } catch (err) { next(err); }
+});
+router.post('/menus', async (req, res, next) => {
+  try { await menu.addItem(req.body.location, menuFields(req.body, true)); res.redirect('/admin/menus?saved=1'); } catch (err) { next(err); }
+});
+router.post('/menus/:id/update', async (req, res, next) => {
+  try { await menu.updateItem(Number(req.params.id), menuFields(req.body, false)); res.redirect('/admin/menus?saved=1'); } catch (err) { next(err); }
+});
+router.post('/menus/:id/delete', async (req, res, next) => {
+  try { await menu.deleteItem(Number(req.params.id)); res.redirect('/admin/menus?saved=1'); } catch (err) { next(err); }
+});
+
+// ---------- Pages and the page builder ----------
+router.get('/pages', async (req, res, next) => {
+  try {
+    let list = [], ready = true;
+    try { list = await builder.listPages(); } catch (e) { ready = false; }
+    res.send(render('admin/pages', { pages: list, ready, saved: req.query.saved === '1' }));
+  } catch (err) { next(err); }
+});
+router.post('/pages', async (req, res, next) => {
+  try {
+    if (!String(req.body.title_en || '').trim()) return res.redirect('/admin/pages');
+    const slug = await builder.createPage(req.body);
+    res.redirect('/admin/pages/' + slug + '?saved=1');
+  } catch (err) { next(err); }
+});
+router.get('/pages/:slug', async (req, res, next) => {
+  try {
+    const slug = req.params.slug, isHome = slug === 'home';
+    let ready = true, sections = [], pageRow = null;
+    try {
+      if (!isHome) { pageRow = await builder.getPage(slug); if (!pageRow) return res.redirect('/admin/pages'); }
+      sections = isHome ? await builder.ensureHome() : await builder.listSections(slug);
+    } catch (e) {
+      ready = false;
+      if (isHome) sections = builder.HOME_ORDER.map(k => ({ id: 'b-' + k, kind: k, config: {}, visible: true }));
+    }
+    const available = Object.keys(builder.BUILTIN).filter(k => !sections.some(s => s.kind === k) && (isHome || !builder.BUILTIN[k].homeOnly));
+    res.send(render('admin/page-builder', {
+      slug, isHome, pageRow: pageRow || {}, sections, builtin: builder.BUILTIN, kinds: builder.KINDS, available,
+      ready, saved: req.query.saved === '1', editing: String(req.query.edit || '')
+    }));
+  } catch (err) { next(err); }
+});
+router.post('/pages/:slug/update', async (req, res, next) => {
+  try { await builder.updatePage(req.params.slug, { ...req.body, active: req.body.active === 'on' }); res.redirect('/admin/pages/' + req.params.slug + '?saved=1'); } catch (err) { next(err); }
+});
+router.post('/pages/:slug/delete', async (req, res, next) => {
+  try { await builder.deletePage(req.params.slug); res.redirect('/admin/pages?saved=1'); } catch (err) { next(err); }
+});
+router.post('/pages/:slug/reorder', async (req, res, next) => {
+  try { await builder.reorderSections(idList(req.body)); res.json({ ok: true }); } catch (err) { next(err); }
+});
+router.post('/pages/:slug/sections', async (req, res, next) => {
+  try {
+    const slug = req.params.slug, kind = String(req.body.kind || '');
+    if (slug === 'home') await builder.ensureHome();
+    const bi = builder.BUILTIN[kind];
+    if (bi && bi.homeOnly && slug !== 'home') return res.redirect('/admin/pages/' + slug);
+    const id = await builder.addSection(slug, kind);
+    res.redirect('/admin/pages/' + slug + '?saved=1' + (builder.KINDS[kind] ? '&edit=' + id : '') + '#section-' + id);
+  } catch (err) { next(err); }
+});
+router.post('/sections/:id/toggle', async (req, res, next) => {
+  try {
+    const s = await builder.getSection(Number(req.params.id));
+    if (s) { await builder.updateSection(s.id, { visible: !s.visible }); return res.redirect('/admin/pages/' + s.page_slug + '#section-' + s.id); }
+    res.redirect('/admin/pages');
+  } catch (err) { next(err); }
+});
+router.post('/sections/:id/delete', async (req, res, next) => {
+  try {
+    const s = await builder.getSection(Number(req.params.id));
+    if (s) await builder.deleteSection(s.id);
+    res.redirect('/admin/pages/' + (s ? s.page_slug : '') + '?saved=1');
+  } catch (err) { next(err); }
+});
+router.post('/sections/:id/update', upload.single('image_file'), async (req, res, next) => {
+  try {
+    const s = await builder.getSection(Number(req.params.id));
+    if (!s || !builder.KINDS[s.kind]) return res.redirect('/admin/pages');
+    const config = builder.cleanConfig(s.kind, req.body, s.config);
+    if (req.file) config.image = await uploadImage(req.file, 'pages');
+    await builder.updateSection(s.id, { config });
+    res.redirect('/admin/pages/' + s.page_slug + '?saved=1&edit=' + s.id + '#section-' + s.id);
+  } catch (err) { next(err); }
 });
 
 // ---------- Call types (what the customer needs help with) ----------

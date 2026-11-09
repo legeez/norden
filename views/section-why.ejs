@@ -1,0 +1,19 @@
+<section class="why" id="why">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>WHY US</span><span data-am>ለምን እኛን</span></div>
+      <h2 data-en>Built On Local Numbers</h2>
+      <h2 data-am>በአካባቢያዊ አሃዞች ላይ የተመሰረተ</h2>
+    </div>
+    <div class="why-grid">
+      <% whyUs.forEach(function(w){ %>
+      <div class="why-card">
+        <h3 data-en><%= w.title_en %></h3>
+        <h3 data-am><%= w.title_am %></h3>
+        <p data-en><%= w.body_en %></p>
+        <p data-am><%= w.body_am %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>

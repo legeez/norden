@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>" class="<%= lang === 'am' ? 'lang-am' : '' %>">
+<head>
+<%- include('partials/_head', { seo: seo, lang: lang }) %>
+</head>
+<body>
+
+<%- include('partials/_header', { lang: lang, prefix: prefix, home: home, enUrl: enUrl, amUrl: amUrl, content: content }) %>
+
+<main id="main">
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
+      <span aria-current="page"><span data-en><%= page.title_en %></span><span data-am><%= page.title_am || page.title_en %></span></span>
+    </nav>
+    <h1 data-en><%= page.title_en %></h1>
+    <h1 data-am><%= page.title_am || page.title_en %></h1>
+  </div>
+</section>
+<% sections.forEach(function(s){ %>
+<%- include('section-' + s.kind, { lang: lang, prefix: prefix, home: home, content: content, services: services, aboutFeatures: aboutFeatures, whyUs: whyUs, process: process, gallery: gallery, products: products, categories: categories, callInfo: callInfo, section: s }) %>
+<% }) %>
+</main>
+
+<%- include('partials/_footer', { lang: lang, prefix: prefix, home: home, content: content, services: services }) %>
+
+<script>
+function formatNum(n){ return Math.round(n).toLocaleString('en-US'); }
+var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduceMotion){ document.querySelectorAll('.count-amt').forEach(function(el){ el.textContent = '0'; }); }
+function animateCounts(){
+  if(reduceMotion) return;
+  document.querySelectorAll('.count-amt').forEach(function(el){
+    var target = parseFloat(el.getAttribute('data-target'));
+    var isDecimal = target % 1 !== 0;
+    var finalText = isDecimal ? target.toFixed(1) : formatNum(target);
+    var start = null, duration = 1400;
+    function step(ts){
+      if(!start) start = ts;
+      var progress = Math.min((ts - start) / duration, 1);
+      var val = target * (1 - Math.pow(1 - progress, 3));
+      el.textContent = isDecimal ? val.toFixed(1) : formatNum(val);
+      if(progress < 1) requestAnimationFrame(step); else el.textContent = finalText;
+    }
+    requestAnimationFrame(step);
+  });
+}
+window.addEventListener('load', function(){ setTimeout(animateCounts, 300); });
+</script>
+</body>
+</html>

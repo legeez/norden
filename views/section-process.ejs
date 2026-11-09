@@ -1,0 +1,20 @@
+<section class="process" id="process">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>HOW WE WORK</span><span data-am>የስራ ሂደታችን</span></div>
+      <h2 data-en>From First Call To Signed Document</h2>
+      <h2 data-am>ከመጀመሪያው ጥሪ እስከ ተፈራርሞ ሰነድ</h2>
+    </div>
+    <div class="proc-track">
+      <% process.forEach(function(p, i){ %>
+      <div class="proc-step">
+        <span class="num"><%= String(i+1).padStart(2,'0') %></span>
+        <h3 data-en><%= p.title_en %></h3>
+        <h3 data-am><%= p.title_am %></h3>
+        <p data-en><%= p.body_en %></p>
+        <p data-am><%= p.body_am %></p>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</section>

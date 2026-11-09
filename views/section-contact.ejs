@@ -1,0 +1,44 @@
+<section class="contact" id="contact">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>GET IN TOUCH</span><span data-am>ያግኙን</span></div>
+      <h2 data-en>Contact Us</h2>
+      <h2 data-am>ያግኙን</h2>
+      <p class="lead" data-en>Pick a service above to request a quote and pay securely with Chapa, or reach out directly.</p>
+      <p class="lead" data-am>ከላይ ካሉት አገልግሎቶች አንዱን በመምረጥ ዋጋ ይጠይቁ እና በChapa በደህንነት ይክፈሉ፣ ወይም በቀጥታ ያግኙን።</p>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-info">
+        <dl>
+          <div>
+            <dt data-en>Office</dt><dt data-am>ቢሮ</dt>
+            <dd data-en><%= content.contact_office.en %></dd>
+            <dd data-am><%= content.contact_office.am || content.contact_office.en %></dd>
+          </div>
+          <div>
+            <dt data-en>Phone</dt><dt data-am>ስልክ</dt>
+            <dd><a href="tel:<%= content.contact_phone.en.replace(/[^+\d]/g, '') %>"><%= content.contact_phone.en %></a></dd>
+          </div>
+          <div>
+            <dt data-en>Email</dt><dt data-am>ኢሜይል</dt>
+            <dd><a href="mailto:<%= content.contact_email.en %>"><%= content.contact_email.en %></a></dd>
+          </div>
+          <div>
+            <dt data-en>Hours</dt><dt data-am>የስራ ሰዓት</dt>
+            <dd data-en><%= content.contact_hours.en %></dd>
+            <dd data-am><%= content.contact_hours.am || content.contact_hours.en %></dd>
+          </div>
+        </dl>
+      </div>
+      <div>
+        <p class="lead" data-en>Prefer to talk first? Call or email us, and we'll help you choose the right service.</p>
+        <p class="lead" data-am>መጀመሪያ ማውራት ይፈልጋሉ? ይደውሉልን ወይም ኢሜይል ይላኩልን፤ ትክክለኛውን አገልግሎት እንድመርጡ እንረዳዎታለን።</p>
+        <div class="contact-actions">
+          <a class="btn btn-primary" href="tel:<%= content.contact_phone.en.replace(/[^+\d]/g, '') %>"><span data-en>Call us</span><span data-am>ይደውሉልን</span></a>
+          <a class="btn btn-outline" href="mailto:<%= content.contact_email.en %>"><span data-en>Send an email</span><span data-am>ኢሜይል ይላኩ</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

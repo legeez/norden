@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menus — Norden Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+<div class="admin-shell">
+  <%- include('_sidebar', { active: 'menus' }) %>
+  <div class="admin-main">
+    <h1>Menus</h1>
+    <p class="admin-sub">Add, remove and rearrange the links in your website menu. Drag a row by its handle (or use the arrows) to change the order. The order saves by itself.</p>
+
+    <% if (!ready) { %><div class="error">The menu tables do not exist yet. Run <code>migrations/005_page_builder.sql</code> in the Supabase SQL Editor. Until then your website keeps its current menu.</div><% } %>
+    <% if (saved) { %><div class="notice">Saved.</div><% } %>
+
+    <% [{ loc: 'header', title: 'Main menu (top of every page)', note: 'The links across the top of your website.' },
+        { loc: 'cta', title: 'Menu button (orange button)', note: 'The orange button next to the language switch. Keep one.' },
+        { loc: 'footer', title: 'Footer links (Explore column)', note: 'The links in the footer under Explore.' }].forEach(function(b){ %>
+    <div class="card">
+      <h2><%= b.title %></h2>
+      <p class="hint" style="margin-top:-6px;"><%= b.note %></p>
+      <% var list = menus[b.loc]; %>
+      <% if (!list) { %>
+        <p class="hint">This menu is using the built-in links. Press the button to edit them.</p>
+        <% if (ready) { %><form method="POST" action="/admin/menus/seed/<%= b.loc %>"><button type="submit" class="btn btn-primary">Edit this menu</button></form><% } %>
+      <% } else { %>
+        <ul class="sortable menu-list" data-url="/admin/menus/reorder">
+          <% list.forEach(function(it){ %><%- include('_menu_row', { it: it, options: options }) %><% }) %>
+        </ul>
+        <form method="POST" action="/admin/menus" class="add-row">
+          <input type="hidden" name="location" value="<%= b.loc %>">
+          <strong>Add a link</strong>
+          <div class="row-top">
+            <input type="text" name="label_en" placeholder="Name (English)" required>
+            <input type="text" name="label_am" placeholder="Name (Amharic)">
+          </div>
+          <div class="row-bottom">
+            <select name="link" class="link-select">
+              <% options.forEach(function(g){ %><optgroup label="<%= g.group %>"><% g.items.forEach(function(o){ %><option value="<%= o.v %>"><%= o.l %></option><% }) %></optgroup><% }) %>
+              <option value="__custom">Another address…</option>
+            </select>
+            <input type="text" name="custom_url" class="custom-url" placeholder="https://… or /page" hidden>
+            <label class="check"><input type="checkbox" name="new_tab"> New tab</label>
+            <button type="submit" class="btn btn-primary">Add</button>
+          </div>
+        </form>
+      <% } %>
+    </div>
+    <% }) %>
+  </div>
+</div>
+<%- include('_dnd') %>
+<script>
+document.addEventListener('change', function (e) {
+  if (!e.target.classList || !e.target.classList.contains('link-select')) return;
+  var box = e.target.parentNode.querySelector('.custom-url'); if (box) box.hidden = e.target.value !== '__custom';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<% var c = section.config || {}; var nums = [1,2,3,4,5,6].filter(function(i){ return c['c' + i + '_title_en']; }); %>
+<section class="cs cs-cards" id="<%= section.anchor %>">
+  <div class="wrap">
+    <% if (c.title_en) { %><h2 data-en><%= c.title_en %></h2><h2 data-am><%= c.title_am || c.title_en %></h2><% } %>
+    <% if (c.intro_en) { %><p class="lead" data-en><%= c.intro_en %></p><p class="lead" data-am><%= c.intro_am || c.intro_en %></p><% } %>
+    <div class="cs-card-grid">
+      <% nums.forEach(function(i){ var href = c['c' + i + '_url_href']; %>
+      <<%= href ? 'a' : 'div' %> class="cs-card"<%- href ? ' href="' + href.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '"' : '' %>>
+        <h3 data-en><%= c['c' + i + '_title_en'] %></h3><h3 data-am><%= c['c' + i + '_title_am'] || c['c' + i + '_title_en'] %></h3>
+        <% if (c['c' + i + '_body_en']) { %><p data-en><%= c['c' + i + '_body_en'] %></p><p data-am><%= c['c' + i + '_body_am'] || c['c' + i + '_body_en'] %></p><% } %>
+      </<%= href ? 'a' : 'div' %>>
+      <% }) %>
+    </div>
+  </div>
+</section>

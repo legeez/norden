@@ -1,3 +1,7 @@
+<%
+  var fitems = (content && content._menu && Array.isArray(content._menu.footer)) ? content._menu.footer : [];
+  function fhref(u){ u = String(u || '/'); if (/^(https?:|mailto:|tel:)/i.test(u)) return u; if (u === '/') return home; if (u.indexOf('/#') === 0) return home + u.slice(1); return prefix + u; }
+%>
 <footer>
   <div class="wrap">
     <div class="foot-grid">
@@ -8,11 +12,9 @@
       </div>
       <div class="foot-col">
         <h4 data-en>Explore</h4><h4 data-am>ያስሱ</h4>
-        <a href="<%= home %>#about" data-en>About us</a><a href="<%= home %>#about" data-am>ስለ እኛ</a>
-        <a href="<%= prefix %>/products" data-en>BOQ &amp; contract templates</a><a href="<%= prefix %>/products" data-am>የBOQ እና የውል ቅጾች</a>
-        <a href="<%= prefix %>/call" data-en>Book a call</a><a href="<%= prefix %>/call" data-am>ጥሪ ያስይዙ</a>
-        <a href="<%= home %>#projects" data-en>Projects</a><a href="<%= home %>#projects" data-am>ፕሮጀክቶች</a>
-        <a href="<%= home %>#contact" data-en>Contact</a><a href="<%= home %>#contact" data-am>ያግኙን</a>
+        <% fitems.forEach(function(m){ %>
+        <a href="<%= fhref(m.url) %>"<%- m.new_tab ? ' target="_blank" rel="noopener"' : '' %> data-en><%= m.label_en %></a><a href="<%= fhref(m.url) %>"<%- m.new_tab ? ' target="_blank" rel="noopener"' : '' %> data-am><%= m.label_am || m.label_en %></a>
+        <% }) %>
       </div>
       <div class="foot-col">
         <h4 data-en>Services</h4><h4 data-am>አገልግሎቶች</h4>

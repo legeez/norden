@@ -1,3 +1,8 @@
+<%
+  var menu = (content && content._menu && Array.isArray(content._menu.header)) ? content._menu : { header: [], cta: [] };
+  var items = menu.header, cta = (menu.cta || [])[0];
+  function href(u){ u = String(u || '/'); if (/^(https?:|mailto:|tel:)/i.test(u)) return u; if (u === '/') return home; if (u.indexOf('/#') === 0) return home + u.slice(1); return prefix + u; }
+%>
 <a class="skip-link" href="#main"><span data-en>Skip to content</span><span data-am>ወደ ይዘት ዝለል</span></a>
 <header class="site-header" id="site-header">
   <div class="wrap nav">
@@ -7,32 +12,26 @@
       <span class="sub" data-am>ግንባታ · አ.ማ</span>
     </a>
     <nav class="nav-links" id="site-nav" aria-label="Main">
-      <a class="nav-link" href="<%= home %>#about" data-en>Company</a>
-      <a class="nav-link" href="<%= home %>#about" data-am>ኩባንያ</a>
-      <a class="nav-link" href="<%= home %>#services" data-en>Services</a>
-      <a class="nav-link" href="<%= home %>#services" data-am>አገልግሎቶች</a>
-      <a class="nav-link" href="<%= prefix %>/call" data-en>Book a Call</a>
-      <a class="nav-link" href="<%= prefix %>/call" data-am>ጥሪ ያስይዙ</a>
-      <a class="nav-link" href="<%= prefix %>/products" data-en>Templates</a>
-      <a class="nav-link" href="<%= prefix %>/products" data-am>የሰነድ ቅጾች</a>
-      <a class="nav-link" href="<%= home %>#process" data-en>Process</a>
-      <a class="nav-link" href="<%= home %>#process" data-am>የስራ ሂደት</a>
-      <a class="nav-link" href="<%= home %>#projects" data-en>Projects</a>
-      <a class="nav-link" href="<%= home %>#projects" data-am>ፕሮጀክቶች</a>
-      <a class="nav-link" href="<%= home %>#contact" data-en>Contact</a>
-      <a class="nav-link" href="<%= home %>#contact" data-am>ያግኙን</a>
-      <a class="btn btn-primary nav-cta-mobile" href="<%= home %>#services">
-        <span data-en>Request a Quote</span><span data-am>ዋጋ ይጠይቁ</span>
+      <% items.forEach(function(m){ %>
+      <a class="nav-link" href="<%= href(m.url) %>"<%- m.new_tab ? ' target="_blank" rel="noopener"' : '' %> data-en><%= m.label_en %></a>
+      <a class="nav-link" href="<%= href(m.url) %>"<%- m.new_tab ? ' target="_blank" rel="noopener"' : '' %> data-am><%= m.label_am || m.label_en %></a>
+      <% }) %>
+      <% if (cta) { %>
+      <a class="btn btn-primary nav-cta-mobile" href="<%= href(cta.url) %>">
+        <span data-en><%= cta.label_en %></span><span data-am><%= cta.label_am || cta.label_en %></span>
       </a>
+      <% } %>
     </nav>
     <div class="nav-actions">
       <div class="lang-toggle" role="group" aria-label="Language">
         <a href="<%= enUrl %>" lang="en" hreflang="en" class="<%= lang === 'en' ? 'active' : '' %>" <%- lang === 'en' ? 'aria-current="true"' : '' %>>EN</a>
         <a href="<%= amUrl %>" lang="am" hreflang="am" class="<%= lang === 'am' ? 'active' : '' %>" <%- lang === 'am' ? 'aria-current="true"' : '' %>>አማ</a>
       </div>
-      <a href="<%= home %>#services" class="btn btn-primary nav-quote">
-        <span data-en>Request a Quote</span><span data-am>ዋጋ ይጠይቁ</span>
+      <% if (cta) { %>
+      <a href="<%= href(cta.url) %>" class="btn btn-primary nav-quote">
+        <span data-en><%= cta.label_en %></span><span data-am><%= cta.label_am || cta.label_en %></span>
       </a>
+      <% } %>
       <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">
         <span></span><span></span><span></span>
       </button>

@@ -1,0 +1,12 @@
+<% var c = section.config || {}; %>
+<section class="cs cs-cta cta-<%= c.style || 'peach' %>" id="<%= section.anchor %>">
+  <div class="wrap cs-cta-inner">
+    <div>
+      <% if (c.title_en) { %><h2 data-en><%= c.title_en %></h2><h2 data-am><%= c.title_am || c.title_en %></h2><% } %>
+      <% if (c.body_en) { %><p data-en><%= c.body_en %></p><p data-am><%= c.body_am || c.body_en %></p><% } %>
+    </div>
+    <% if (c.btn_label_en && c.btn_url_href) { %>
+    <a class="btn <%= (c.style === 'orange') ? 'btn-dark' : 'btn-primary' %>" href="<%= c.btn_url_href %>"><span data-en><%= c.btn_label_en %></span><span data-am><%= c.btn_label_am || c.btn_label_en %></span></a>
+    <% } %>
+  </div>
+</section>

@@ -1,0 +1,49 @@
+<div id="save-toast" class="save-toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  var toast = document.getElementById('save-toast'), timer;
+  function say(text, bad) {
+    toast.textContent = text; toast.className = 'save-toast show' + (bad ? ' bad' : '');
+    clearTimeout(timer); timer = setTimeout(function () { toast.className = 'save-toast'; }, 2200);
+  }
+  function idsOf(ul) { return Array.prototype.map.call(ul.querySelectorAll(':scope > li[data-id]'), function (li) { return li.getAttribute('data-id'); }); }
+  function save(ul) {
+    var url = ul.getAttribute('data-url'); if (!url) return;
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'ids=' + encodeURIComponent(idsOf(ul).join(',')) })
+      .then(function (r) { say(r.ok ? 'Order saved' : 'Could not save the order', !r.ok); })
+      .catch(function () { say('Could not save the order', true); });
+  }
+  function after(ul, y) {
+    var best = { o: -Infinity, el: null };
+    Array.prototype.forEach.call(ul.querySelectorAll(':scope > li[data-id]:not(.dragging)'), function (el) {
+      var b = el.getBoundingClientRect(), o = y - b.top - b.height / 2;
+      if (o < 0 && o > best.o) best = { o: o, el: el };
+    });
+    return best.el;
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('ul.sortable'), function (ul) {
+    ul.addEventListener('mousedown', function (e) { var h = e.target.closest('.handle'); if (h) h.closest('li[data-id]').draggable = true; });
+    ul.addEventListener('dragstart', function (e) {
+      var li = e.target.closest ? e.target.closest('li[data-id]') : null; if (!li || li.parentNode !== ul) return;
+      li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', li.getAttribute('data-id'));
+    });
+    ul.addEventListener('dragover', function (e) {
+      var drag = ul.querySelector(':scope > li.dragging'); if (!drag) return; e.preventDefault();
+      var el = after(ul, e.clientY); if (el === null) ul.appendChild(drag); else ul.insertBefore(drag, el);
+    });
+    ul.addEventListener('drop', function (e) { e.preventDefault(); });
+    ul.addEventListener('dragend', function () {
+      var li = ul.querySelector(':scope > li.dragging'); if (!li) return;
+      li.classList.remove('dragging'); li.draggable = false; save(ul);
+    });
+    ul.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-move]'); if (!b) return;
+      var li = b.closest('li[data-id]'); if (!li || li.parentNode !== ul) return;
+      if (b.getAttribute('data-move') === 'up' && li.previousElementSibling) ul.insertBefore(li, li.previousElementSibling);
+      else if (b.getAttribute('data-move') === 'down' && li.nextElementSibling) ul.insertBefore(li.nextElementSibling, li);
+      else return;
+      save(ul);
+    });
+  });
+})();
+</script>

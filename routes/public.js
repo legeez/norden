@@ -4,6 +4,7 @@ const seo = require('../lib/seo');
 const { CATEGORIES, category } = require('../lib/catalog');
 const { render } = require('../lib/render');
 const calls = require('../lib/calls');
+const builder = require('../lib/pages');
 
 // Helpers ---------------------------------------------------------------
 
@@ -47,20 +48,28 @@ function languageRouter(lang) {
   const router = express.Router();
   const isAm = lang === 'am';
 
+  // Everything the built-in sections need. The home page and the pages you build in
+  // Admin -> Pages are made from the same sections, so they share one loader.
+  async function builderData() {
+    const [content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats] = await Promise.all([
+      store.getContent(),
+      store.listServices({ activeOnly: true }),
+      store.listBlocks('about_features'),
+      store.listBlocks('why_us'),
+      store.listBlocks('process'),
+      store.listGallery(),
+      store.listProductsSafe({ activeOnly: true }),
+      calls.getSettingsSafe(),
+      calls.listCategoriesSafe({ activeOnly: true })
+    ]);
+    return { content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats };
+  }
+
   // ---------- Home ----------
   router.get('/', async (req, res, next) => {
     try {
-      const [content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats] = await Promise.all([
-        store.getContent(),
-        store.listServices({ activeOnly: true }),
-        store.listBlocks('about_features'),
-        store.listBlocks('why_us'),
-        store.listBlocks('process'),
-        store.listGallery(),
-        store.listProductsSafe({ activeOnly: true }),
-        calls.getSettingsSafe(),
-        calls.listCategoriesSafe({ activeOnly: true })
-      ]);
+      const [data, sectionRows] = await Promise.all([builderData(), builder.publicSections('home')]);
+      const { content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats } = data;
       const ctx = pageContext(req, lang, '/');
       const name = pick(content.company_name, lang);
       const title = pick(content.seo_title, lang) ||
@@ -81,7 +90,39 @@ function languageRouter(lang) {
       res.send(render('index', {
         ...ctx, content, services: withSlugs(services), aboutFeatures, whyUs, process, gallery,
         products: decorate(products.slice(0, 6)), categories: CATEGORIES, seo: page,
-        callInfo: calls.homeSummary(callSettings.s, callSettings.ready, callCats)
+        callInfo: calls.homeSummary(callSettings.s, callSettings.ready, callCats),
+        sections: builder.decorate(sectionRows, lang)
+      }));
+    } catch (err) { next(err); }
+  });
+
+  // ---------- Pages built in Admin -> Pages: /p/<page> ----------
+  router.get('/p/:slug', async (req, res, next) => {
+    try {
+      const [data, pageRow, sectionRows] = await Promise.all([
+        builderData(), builder.getPage(req.params.slug).catch(() => null), builder.publicSections(req.params.slug)
+      ]);
+      const { content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats } = data;
+      if (!pageRow || !pageRow.active) return notFound(req, res, lang, content);
+      const path = '/p/' + pageRow.slug;
+      const ctx = pageContext(req, lang, path);
+      const name = pick(content.company_name, lang);
+      const ptitle = lang === 'am' && pageRow.title_am ? pageRow.title_am : pageRow.title_en;
+      const firstText = (sectionRows.map(r => r.config || {}).map(c => c.body_en || c.intro_en || '').find(Boolean)) || '';
+      const autoDesc = seo.clip(firstText, 155) || `${ptitle} — ${name}`;
+      const crumbs = [{ name, url: seo.localizedUrl(ctx.base, lang, '/') }, { name: ptitle, url: seo.localizedUrl(ctx.base, lang, path) }];
+      const page = seo.seoFor({
+        req, lang, path,
+        title: seo.seoText(pageRow, lang, 'title', `${ptitle} | ${name}`),
+        description: seo.seoText(pageRow, lang, 'desc', autoDesc),
+        ld: [seo.breadcrumbLd(crumbs)]
+      });
+      res.set('Cache-Control', 'public, max-age=120');
+      res.send(render('page', {
+        ...ctx, content, services: withSlugs(services), aboutFeatures, whyUs, process, gallery,
+        products: decorate(products.slice(0, 6)), categories: CATEGORIES, seo: page, page: pageRow,
+        callInfo: calls.homeSummary(callSettings.s, callSettings.ready, callCats),
+        sections: builder.decorate(sectionRows, lang)
       }));
     } catch (err) { next(err); }
   });
@@ -229,17 +270,19 @@ function xmlEscape(s) {
 root.get('/sitemap.xml', async (req, res, next) => {
   try {
     const base = seo.baseUrl(req);
-    const [services, products, callTypes, gallery] = await Promise.all([
+    const [services, products, callTypes, gallery, customPages] = await Promise.all([
       store.listServices({ activeOnly: true }),
       store.listProductsSafe({ activeOnly: true }),
       calls.listCategoriesSafe({ activeOnly: true }),
-      store.listGallery().catch(() => [])
+      store.listGallery().catch(() => []),
+      builder.listPagesSafe()
     ]);
     const abs = (u) => (/^https?:/i.test(u) ? u : base + (String(u).startsWith('/') ? '' : '/') + u);
     const pages = [
       { path: '/', priority: '1.0', freq: 'weekly', images: gallery.filter(g => g.image).map(g => ({ loc: abs(g.image), title: g.alt_en || g.caption_en || '' })) },
       { path: '/products', priority: '0.9', freq: 'weekly' },
       { path: '/call', priority: '0.8', freq: 'monthly' },
+      ...customPages.filter(p => p.active).map(p => ({ path: '/p/' + p.slug, priority: '0.7', freq: 'monthly', lastmod: p.created_at })),
       ...callTypes.map(c => ({ path: '/call/' + (seo.slugify(c.title_en) || c.id), priority: '0.8', freq: 'monthly', lastmod: c.created_at })),
       ...withSlugs(services).map(s => ({ path: '/services/' + s.slug, priority: '0.8', freq: 'monthly' })),
       ...products.map(p => ({ path: '/products/' + p.slug, priority: '0.8', freq: 'monthly', lastmod: p.created_at, images: p.image ? [{ loc: abs(p.image), title: p.image_alt_en || p.title_en }] : [] }))

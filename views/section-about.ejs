@@ -1,0 +1,37 @@
+<section class="about" id="about">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow"><span data-en>COMPANY PROFILE</span><span data-am>የኩባንያ መገለጫ</span></div>
+      <h2 data-en><%= content.about_title.en %></h2>
+      <h2 data-am><%= content.about_title.am %></h2>
+      <p class="lead" data-en><%= content.about_body.en %></p>
+      <p class="lead" data-am><%= content.about_body.am %></p>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-figure">
+        <% if (content.about_image.en) { %>
+          <img src="<%= content.about_image.en %>" alt="<%= lang === 'am' ? (content.about_title.am || content.about_title.en) : content.about_title.en %>" loading="lazy" decoding="async">
+        <% } else { %>
+          <div class="cap" data-en>[ Project photo — add one in the admin panel ]</div>
+          <div class="cap" data-am>[ የፕሮጀክት ፎቶ — ከአስተዳደር ፓነል ይጨምሩ ]</div>
+        <% } %>
+      </div>
+      <div>
+        <ul class="about-list">
+          <% aboutFeatures.forEach(function(f, i){ %>
+          <li>
+            <span class="num"><%= String(i+1).padStart(2,'0') %></span>
+            <div class="txt">
+              <strong data-en><%= f.title_en %></strong>
+              <strong data-am><%= f.title_am %></strong>
+              <span data-en><%= f.body_en %></span>
+              <span data-am><%= f.body_am %></span>
+            </div>
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
