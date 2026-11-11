@@ -15,6 +15,8 @@
 
     <% if (!ready) { %><div class="error">The menu tables do not exist yet. Run <code>migrations/005_page_builder.sql</code> in the Supabase SQL Editor. Until then your website keeps its current menu.</div><% } %>
     <% if (saved) { %><div class="notice">Saved.</div><% } %>
+    <% if (synced === 'yes') { %><div class="notice">Done. The home page sections now follow the order of your main menu.</div><% } %>
+    <% if (synced === 'same') { %><div class="notice">The home page already matches your main menu.</div><% } %>
 
     <% [{ loc: 'header', title: 'Main menu (top of every page)', note: 'The links across the top of your website.' },
         { loc: 'cta', title: 'Menu button (orange button)', note: 'The orange button next to the language switch. Keep one.' },
@@ -22,6 +24,12 @@
     <div class="card">
       <h2><%= b.title %></h2>
       <p class="hint" style="margin-top:-6px;"><%= b.note %></p>
+      <% if (b.loc === 'header' && ready) { %>
+      <div class="sync-note">
+        <span>When you change the order here, the home page sections that these links point to are reordered to match (for example Services, Process, Contact). The hero, the strip and sections not in this menu stay where they are.</span>
+        <form method="POST" action="/admin/menus/sync-home"><button type="submit" class="btn btn-outline">Match home page to this menu now</button></form>
+      </div>
+      <% } %>
       <% var list = menus[b.loc]; %>
       <% if (!list) { %>
         <p class="hint">This menu is using the built-in links. Press the button to edit them.</p>

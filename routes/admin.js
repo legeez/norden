@@ -449,11 +449,27 @@ function menuFields(body, visibleDefault) {
 router.get('/menus', async (req, res, next) => {
   try {
     const [menus, options] = await Promise.all([menu.loadForAdmin(), linkOptions()]);
-    res.send(render('admin/menus', { menus, ready: menus.ready, options, saved: req.query.saved === '1' }));
+    res.send(render('admin/menus', { menus, ready: menus.ready, options, saved: req.query.saved === '1', synced: String(req.query.synced || '') }));
   } catch (err) { next(err); }
 });
 router.post('/menus/reorder', async (req, res, next) => {
-  try { await menu.reorder(idList(req.body)); res.json({ ok: true }); } catch (err) { next(err); }
+  try {
+    const ids = idList(req.body);
+    await menu.reorder(ids);
+    // The main menu also sets the order of the home page sections it links to.
+    let message = 'Order saved';
+    if (ids.length && await menu.locationOf(ids[0]) === 'header') {
+      const r = await builder.syncHomeFromMenu(await menu.headerLinks());
+      if (r.changed) message = 'Order saved. The home page sections were reordered to match.';
+    }
+    res.json({ ok: true, message });
+  } catch (err) { next(err); }
+});
+router.post('/menus/sync-home', async (req, res, next) => {
+  try {
+    const r = await builder.syncHomeFromMenu(await menu.headerLinks());
+    res.redirect('/admin/menus?synced=' + (r.changed ? 'yes' : 'same'));
+  } catch (err) { next(err); }
 });
 router.post('/menus/seed/:location', async (req, res, next) => {
   try { await menu.seedDefaults(req.params.location); res.redirect('/admin/menus?saved=1'); } catch (err) { next(err); }

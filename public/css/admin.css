@@ -207,3 +207,7 @@ li.dragging{ opacity:0.45; }
 .page-row:last-child{ border-bottom:none; }
 .crumb{ margin:0 0 6px; font-size:13px; } .crumb a{ color:var(--steel); text-decoration:none; } .crumb a:hover{ color:var(--ink); }
 @media (max-width: 700px){ .menu-row .row-top{ flex-wrap:wrap; } }
+
+.sync-note{ display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap; background:var(--peach); border:1px solid #F5D9C4; border-radius:10px; padding:12px 16px; margin:0 0 16px; font-size:13px; line-height:1.55; color:var(--ink); }
+.sync-note span{ flex:1; min-width:240px; }
+.sync-note form{ margin:0; }

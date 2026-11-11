@@ -10,7 +10,8 @@
   function save(ul) {
     var url = ul.getAttribute('data-url'); if (!url) return;
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'ids=' + encodeURIComponent(idsOf(ul).join(',')) })
-      .then(function (r) { say(r.ok ? 'Order saved' : 'Could not save the order', !r.ok); })
+      .then(function (r) { return r.ok ? r.json().catch(function () { return {}; }) : Promise.reject(); })
+      .then(function (d) { say((d && d.message) || 'Order saved'); })
       .catch(function () { say('Could not save the order', true); });
   }
   function after(ul, y) {

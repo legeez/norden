@@ -68,7 +68,7 @@ const LOCALS_KEYS = {
   'admin/_section_form': ['s', 'def'],
   'admin/page-builder': ['slug', 'isHome', 'pageRow', 'sections', 'builtin', 'kinds', 'available', 'ready', 'saved', 'editing'],
   'admin/_menu_row': ['it', 'options'],
-  'admin/menus': ['menus', 'ready', 'options', 'saved'],
+  'admin/menus': ['menus', 'ready', 'options', 'saved', 'synced'],
   'admin/_sidebar': ['active'],
   'admin/login': ['error'],
   'admin/dashboard': ['serviceCount', 'orderCount', 'paidCount', 'revenue', 'recentOrders', 'newCalls'],
