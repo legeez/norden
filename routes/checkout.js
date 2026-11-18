@@ -35,7 +35,7 @@ function asItem(kind, row) {
     price: row.price, currency: row.currency || 'ETB',
     file_type: kind === 'product' ? row.file_type : '',
     action: kind === 'product' ? `/checkout/product/${row.id}` : `/checkout/${row.id}`,
-    back: kind === 'product' ? `/products/${row.slug}` : '/#services'
+    back: kind === 'product' ? `/products/${row.slug}` : '/services'
   };
 }
 

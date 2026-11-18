@@ -38,6 +38,20 @@
       <% }) %>
     </div>
 
+    <div class="card">
+      <h2>Menu pages</h2>
+      <p class="hint" style="margin-top:-6px;">The pages your menu opens. Each one has its own sections, so you can remove a section from the home page and it will still be here.</p>
+      <% system.forEach(function(p){ %>
+      <div class="page-row">
+        <div><strong><%= p.title_en %></strong><div class="hint" style="margin:2px 0 0;">/<%= p.slug %></div></div>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="/admin/pages/<%= p.slug %>">Edit sections</a>
+          <a class="btn btn-outline" href="/<%= p.slug %>" target="_blank" rel="noopener">View</a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+
     <% if (ready) { %>
     <div class="card">
       <h2>Create a new page</h2>

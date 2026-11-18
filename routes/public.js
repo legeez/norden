@@ -96,20 +96,23 @@ function languageRouter(lang) {
     } catch (err) { next(err); }
   });
 
-  // ---------- Pages built in Admin -> Pages: /p/<page> ----------
-  router.get('/p/:slug', async (req, res, next) => {
+  // ---------- Pages built in Admin -> Pages ----------
+  // Pages you create live at /p/<page>. The menu pages (Company, Services, Process, Projects,
+  // Contact) live at /company, /services, ... and are made from the same sections.
+  async function renderBuilt(req, res, next, slug, system) {
     try {
       const [data, pageRow, sectionRows] = await Promise.all([
-        builderData(), builder.getPage(req.params.slug).catch(() => null), builder.publicSections(req.params.slug)
+        builderData(), system ? builder.getPageOrSystem(slug) : builder.getPage(slug).catch(() => null), builder.publicSections(slug)
       ]);
       const { content, services, aboutFeatures, whyUs, process, gallery, products, callSettings, callCats } = data;
       if (!pageRow || !pageRow.active) return notFound(req, res, lang, content);
-      const path = '/p/' + pageRow.slug;
+      const path = (system ? '/' : '/p/') + pageRow.slug;
       const ctx = pageContext(req, lang, path);
       const name = pick(content.company_name, lang);
       const ptitle = lang === 'am' && pageRow.title_am ? pageRow.title_am : pageRow.title_en;
+      const def = system ? builder.SYSTEM_PAGES[slug] : null;
       const firstText = (sectionRows.map(r => r.config || {}).map(c => c.body_en || c.intro_en || '').find(Boolean)) || '';
-      const autoDesc = seo.clip(firstText, 155) || `${ptitle} — ${name}`;
+      const autoDesc = def ? (lang === 'am' ? def.desc_am : def.desc_en) : (seo.clip(firstText, 155) || `${ptitle} — ${name}`);
       const crumbs = [{ name, url: seo.localizedUrl(ctx.base, lang, '/') }, { name: ptitle, url: seo.localizedUrl(ctx.base, lang, path) }];
       const page = seo.seoFor({
         req, lang, path,
@@ -125,7 +128,9 @@ function languageRouter(lang) {
         sections: builder.decorate(sectionRows, lang)
       }));
     } catch (err) { next(err); }
-  });
+  }
+  router.get('/p/:slug', (req, res, next) => renderBuilt(req, res, next, req.params.slug, false));
+  Object.keys(builder.SYSTEM_PAGES).forEach(slug => router.get('/' + slug, (req, res, next) => renderBuilt(req, res, next, slug, true)));
 
   // ---------- Products list ----------
   router.get('/products', async (req, res, next) => {
@@ -221,7 +226,7 @@ function languageRouter(lang) {
       const sdesc = descOf(service, lang);
       const crumbs = [
         { name, url: seo.localizedUrl(ctx.base, lang, '/') },
-        { name: isAm ? 'አገልግሎቶች' : 'Services', url: seo.localizedUrl(ctx.base, lang, '/') + (lang === 'am' ? '#services' : '#services') },
+        { name: isAm ? 'አገልግሎቶች' : 'Services', url: seo.localizedUrl(ctx.base, lang, '/services') },
         { name: stitle, url: seo.localizedUrl(ctx.base, lang, '/services/' + service.slug) }
       ];
       const page = seo.seoFor({
@@ -282,7 +287,8 @@ root.get('/sitemap.xml', async (req, res, next) => {
       { path: '/', priority: '1.0', freq: 'weekly', images: gallery.filter(g => g.image).map(g => ({ loc: abs(g.image), title: g.alt_en || g.caption_en || '' })) },
       { path: '/products', priority: '0.9', freq: 'weekly' },
       { path: '/call', priority: '0.8', freq: 'monthly' },
-      ...customPages.filter(p => p.active).map(p => ({ path: '/p/' + p.slug, priority: '0.7', freq: 'monthly', lastmod: p.created_at })),
+      ...Object.keys(builder.SYSTEM_PAGES).map(s => ({ path: '/' + s, priority: '0.8', freq: 'monthly' })),
+      ...customPages.filter(p => p.active && !builder.SYSTEM_PAGES[p.slug]).map(p => ({ path: '/p/' + p.slug, priority: '0.7', freq: 'monthly', lastmod: p.created_at })),
       ...callTypes.map(c => ({ path: '/call/' + (seo.slugify(c.title_en) || c.id), priority: '0.8', freq: 'monthly', lastmod: c.created_at })),
       ...withSlugs(services).map(s => ({ path: '/services/' + s.slug, priority: '0.8', freq: 'monthly' })),
       ...products.map(p => ({ path: '/products/' + p.slug, priority: '0.8', freq: 'monthly', lastmod: p.created_at, images: p.image ? [{ loc: abs(p.image), title: p.image_alt_en || p.title_en }] : [] }))

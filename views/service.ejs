@@ -12,7 +12,7 @@
   <div class="wrap">
     <nav class="crumbs" aria-label="Breadcrumb">
       <a href="<%= home %>"><span data-en>Home</span><span data-am>መነሻ</span></a><span class="sep">/</span>
-      <a href="<%= home %>#services"><span data-en>Services</span><span data-am>አገልግሎቶች</span></a><span class="sep">/</span>
+      <a href="<%= prefix %>/services"><span data-en>Services</span><span data-am>አገልግሎቶች</span></a><span class="sep">/</span>
       <span aria-current="page"><span data-en><%= service.title_en %></span><span data-am><%= service.title_am || service.title_en %></span></span>
     </nav>
     <h1 data-en><%= service.title_en %> in Addis Ababa</h1>
@@ -55,7 +55,7 @@
         <li data-en>Prepared by our team in Addis Ababa</li><li data-am>በአዲስ አበባ ባለው ቡድናችን የሚዘጋጅ</li>
         <li data-en>Questions first? Call or email us</li><li data-am>መጀመሪያ ጥያቄ አለዎት? ይደውሉልን ወይም ኢሜይል ይላኩልን</li>
       </ul>
-      <a class="btn btn-outline" href="<%= home %>#contact"><span data-en>Contact us</span><span data-am>ያግኙን</span></a>
+      <a class="btn btn-outline" href="<%= prefix %>/contact"><span data-en>Contact us</span><span data-am>ያግኙን</span></a>
     </aside>
   </div>
 </section>

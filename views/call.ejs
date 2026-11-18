@@ -28,7 +28,7 @@
       <span data-en>Call booking is not open right now. Please call or email us from the contact section and we will help you.</span>
       <span data-am>ጥሪ ማስያዝ አሁን ክፍት አይደለም። እባክዎ ከመገኛ ክፍሉ በስልክ ወይም በኢሜይል ያግኙን።</span>
     </div>
-    <p style="margin-top:20px;"><a class="btn btn-primary" href="<%= home %>#contact"><span data-en>Contact us</span><span data-am>ያግኙን</span></a></p>
+    <p style="margin-top:20px;"><a class="btn btn-primary" href="<%= prefix %>/contact"><span data-en>Contact us</span><span data-am>ያግኙን</span></a></p>
   <% } else { %>
     <form class="call-form" id="call-form" method="POST" action="/call/book" novalidate>
       <input type="hidden" name="lang" value="<%= lang %>">
