@@ -66,7 +66,7 @@ const LOCALS_KEYS = {
   'admin/_dnd': [],
   'admin/pages': ['pages', 'system', 'ready', 'saved'],
   'admin/_section_form': ['s', 'def'],
-  'admin/page-builder': ['slug', 'isHome', 'isSystem', 'pageRow', 'sections', 'builtin', 'kinds', 'available', 'ready', 'saved', 'editing'],
+  'admin/page-builder': ['slug', 'isHome', 'isSystem', 'pageRow', 'sections', 'builtin', 'kinds', 'editable', 'available', 'ready', 'saved', 'editing'],
   'admin/_menu_row': ['it', 'options'],
   'admin/menus': ['menus', 'ready', 'options', 'scrollLinks', 'saved', 'converted'],
   'admin/_sidebar': ['active'],

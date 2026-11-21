@@ -462,3 +462,13 @@ a.cs-card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px -18px rgba(2
 .cs-q[open] summary::after{ content:'\2212'; }
 .cs-q p{ margin:0; padding:0 20px 18px; color:var(--steel); line-height:1.7; }
 @media (max-width: 860px){ .cs-image-grid{ grid-template-columns:1fr; } .cs-image.img-left .cs-image-pic{ order:0; } }
+
+/* ---------- Hero: your own picture, or text only ---------- */
+.hero-visual{ position:relative; }
+.hero-visual img{ display:block; width:100%; height:auto; max-height:540px; object-fit:cover; border-radius:8px; border:1px solid var(--line-dark); box-shadow:0 30px 60px -28px rgba(27,27,31,0.35); }
+.hero-single{ grid-template-columns:1fr; }
+.hero-single h1{ max-width:22ch; }
+.hero-single p.lead{ max-width:60ch; }
+
+/* A long hero heading gets a little less size and the full column width */
+.hero h1.is-long{ font-size:clamp(28px, 4.3vw, 44px); max-width:none; }

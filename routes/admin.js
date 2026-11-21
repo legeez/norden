@@ -509,9 +509,13 @@ router.get('/pages/:slug', async (req, res, next) => {
       if (isHome) sections = builder.HOME_ORDER.map(k => ({ id: 'b-' + k, kind: k, config: {}, visible: true }));
       if (isSystem) { sections = builder.systemDefault(slug); pageRow = await builder.getPageOrSystem(slug); }
     }
+    if (isHome) {
+      const content = await store.getContent().catch(() => null);
+      sections = sections.map(s => (s.kind === 'hero' ? { ...s, config: { ...builder.heroDefaults(content), ...(s.config || {}) } } : s));
+    }
     const available = Object.keys(builder.BUILTIN).filter(k => !sections.some(s => s.kind === k) && (isHome || !builder.BUILTIN[k].homeOnly));
     res.send(render('admin/page-builder', {
-      slug, isHome, isSystem, pageRow: pageRow || {}, sections, builtin: builder.BUILTIN, kinds: builder.KINDS, available,
+      slug, isHome, isSystem, pageRow: pageRow || {}, sections, builtin: builder.BUILTIN, kinds: builder.KINDS, editable: builder.EDITABLE, available,
       ready, saved: req.query.saved === '1', editing: String(req.query.edit || '')
     }));
   } catch (err) { next(err); }
@@ -533,7 +537,7 @@ router.post('/pages/:slug/sections', async (req, res, next) => {
     const bi = builder.BUILTIN[kind];
     if (bi && bi.homeOnly && slug !== 'home') return res.redirect('/admin/pages/' + slug);
     const id = await builder.addSection(slug, kind);
-    res.redirect('/admin/pages/' + slug + '?saved=1' + (builder.KINDS[kind] ? '&edit=' + id : '') + '#section-' + id);
+    res.redirect('/admin/pages/' + slug + '?saved=1' + ((builder.KINDS[kind] || builder.EDITABLE[kind]) ? '&edit=' + id : '') + '#section-' + id);
   } catch (err) { next(err); }
 });
 router.post('/sections/:id/toggle', async (req, res, next) => {
@@ -553,8 +557,9 @@ router.post('/sections/:id/delete', async (req, res, next) => {
 router.post('/sections/:id/update', upload.single('image_file'), async (req, res, next) => {
   try {
     const s = await builder.getSection(Number(req.params.id));
-    if (!s || !builder.KINDS[s.kind]) return res.redirect('/admin/pages');
+    if (!s || !(builder.KINDS[s.kind] || builder.EDITABLE[s.kind])) return res.redirect('/admin/pages');
     const config = builder.cleanConfig(s.kind, req.body, s.config);
+    if (req.body.remove_image === 'on') config.image = '';
     if (req.file) config.image = await uploadImage(req.file, 'pages');
     await builder.updateSection(s.id, { config });
     res.redirect('/admin/pages/' + s.page_slug + '?saved=1&edit=' + s.id + '#section-' + s.id);

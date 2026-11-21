@@ -22,7 +22,7 @@
       <h2>Sections on this page</h2>
       <% if (!sections.length) { %><p class="hint" style="margin:0;">This page has no sections yet. Add one below.</p><% } %>
       <ul class="sortable sec-list" data-url="/admin/pages/<%= slug %>/reorder">
-        <% sections.forEach(function(s){ var bi = builtin[s.kind]; var def = kinds[s.kind]; %>
+        <% sections.forEach(function(s){ var bi = builtin[s.kind]; var def = kinds[s.kind] || editable[s.kind]; %>
         <li class="sec-row <%= s.visible ? '' : 'is-hidden' %>" data-id="<%= s.id %>" id="section-<%= s.id %>">
           <div class="sec-head">
             <span class="handle" title="Drag to move">&#10303;</span>
@@ -36,11 +36,11 @@
             <form method="POST" action="/admin/sections/<%= s.id %>/toggle"><button type="submit" class="btn btn-outline"><%= s.visible ? 'Hide' : 'Show' %></button></form>
             <form method="POST" action="/admin/sections/<%= s.id %>/delete" onsubmit="return confirm('Remove this section from the page?');"><button type="submit" class="btn btn-danger">Remove</button></form>
           </div>
-          <% if (bi) { %>
+          <% if (bi && !bi.editable) { %>
           <p class="hint sec-note">This section&rsquo;s text and pictures come from <% if (bi.edit) { %><a href="<%= bi.edit %>" style="text-decoration:underline;"><%= bi.editLabel %></a><% } else { %>the website itself<% } %>.</p>
           <% } else { %>
           <details class="sec-edit" <%= editing === String(s.id) ? 'open' : '' %>>
-            <summary>Edit this section</summary>
+            <summary><%= bi ? 'Edit the heading, buttons and picture' : 'Edit this section' %></summary>
             <%- include('_section_form', { s: s, def: def }) %>
           </details>
           <% } %>

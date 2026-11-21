@@ -1,25 +1,40 @@
+<%
+  var h = (section && section.config) || {};
+  var visual = (h.visual === 'image' && h.image) ? 'image' : (h.visual === 'none' ? 'none' : 'boq');
+%>
 <section class="hero">
-  <div class="wrap hero-grid">
+  <div class="wrap hero-grid <%= visual === 'none' ? 'hero-single' : '' %>">
     <div>
       <div class="eyebrow">
-        <span data-en><%= content.hero_eyebrow.en %></span>
-        <span data-am><%= content.hero_eyebrow.am %></span>
+        <span data-en><%= h.eyebrow_en || content.hero_eyebrow.en %></span>
+        <span data-am><%= h.eyebrow_am || content.hero_eyebrow.am %></span>
       </div>
-      <h1 data-en><%= content.hero_title.en %></h1>
-      <h1 data-am class="block"><%= content.hero_title.am %></h1>
-      <p class="lead" data-en><%= content.hero_subtitle.en %></p>
-      <p class="lead" data-am><%= content.hero_subtitle.am %></p>
+      <% var tEn = h.title_en || content.hero_title.en, tAm = h.title_am || content.hero_title.am; %>
+      <h1 class="<%= String(tEn).length > 30 ? 'is-long' : '' %>" data-en><%= tEn %></h1>
+      <h1 data-am class="block <%= String(tAm).length > 30 ? 'is-long' : '' %>"><%= tAm %></h1>
+      <p class="lead" data-en><%= h.subtitle_en || content.hero_subtitle.en %></p>
+      <p class="lead" data-am><%= h.subtitle_am || content.hero_subtitle.am %></p>
       <div class="hero-ctas">
-        <a href="<%= prefix %>/services" class="btn btn-primary">
-          <span data-en>Get a Free Estimate</span>
-          <span data-am>ነጻ ግምት ያግኙ</span>
+        <% if (h.btn1_label_en !== '') { %>
+        <a href="<%= h.btn1_url_href || (prefix + '/services') %>" class="btn btn-primary">
+          <span data-en><%= h.btn1_label_en || 'Get a Free Estimate' %></span>
+          <span data-am><%= h.btn1_label_am || h.btn1_label_en || 'ነጻ ግምት ያግኙ' %></span>
         </a>
-        <a href="<%= prefix %>/products" class="btn btn-ghost">
-          <span data-en>Download Templates</span>
-          <span data-am>ቅጾችን ያውርዱ</span>
+        <% } %>
+        <% if (h.btn2_label_en !== '') { %>
+        <a href="<%= h.btn2_url_href || (prefix + '/products') %>" class="btn btn-ghost">
+          <span data-en><%= h.btn2_label_en || 'Download Templates' %></span>
+          <span data-am><%= h.btn2_label_am || h.btn2_label_en || 'ቅጾችን ያውርዱ' %></span>
         </a>
+        <% } %>
       </div>
     </div>
+
+    <% if (visual === 'image') { %>
+    <div class="hero-visual">
+      <img src="<%= h.image %>" alt="<%= lang === 'am' ? (h.image_alt_am || h.title_am || h.image_alt_en || h.title_en || '') : (h.image_alt_en || h.title_en || '') %>" decoding="async" fetchpriority="high">
+    </div>
+    <% } else if (visual === 'boq') { %>
 
     <div class="boq-card">
       <div class="boq-head">
@@ -79,5 +94,6 @@
         <span class="value">ETB <span class="count-amt" data-target="2399400">2,399,400</span></span>
       </div>
     </div>
+    <% } %>
   </div>
 </section>

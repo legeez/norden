@@ -8,12 +8,13 @@
     <% } else if (f.type === 'select') { %>
     <label><%= f.label %></label>
     <select name="<%= f.k %>">
-      <% f.options.forEach(function(o){ %><option value="<%= o %>" <%= (s.config[f.k] || f.def) === o ? 'selected' : '' %>><%= o.charAt(0).toUpperCase() + o.slice(1) %></option><% }) %>
+      <% f.options.forEach(function(o){ %><option value="<%= o %>" <%= (s.config[f.k] || f.def) === o ? 'selected' : '' %>><%= (f.labels && f.labels[o]) || (o.charAt(0).toUpperCase() + o.slice(1)) %></option><% }) %>
     </select>
     <% } else if (f.type === 'image') { %>
     <label><%= f.label %></label>
     <% if (s.config[f.k]) { %><img src="<%= s.config[f.k] %>" alt="" class="thumb" style="width:160px;height:110px;object-fit:cover;margin-bottom:10px;display:block;"><% } %>
     <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+    <% if (s.config[f.k]) { %><label class="check" style="margin-top:8px;"><input type="checkbox" name="remove_image"> Remove the current picture</label><% } %>
     <p class="hint">PNG, JPG, WEBP or GIF, up to 5 MB. Leave empty to keep the current image.</p>
     <% } else if (f.type === 'url') { %>
     <label><%= f.label %></label>
